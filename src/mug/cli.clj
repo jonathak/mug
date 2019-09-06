@@ -1,4 +1,4 @@
-(ns shasta.cli
+(ns mug.cli
   (:require [mug.core :refer :all ]
             [mug.app   :as app]
             [mug.util  :as util]
