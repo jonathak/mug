@@ -125,3 +125,5 @@
 (require 'mug.cli :reload)
 (-main)
 (exit)
+(-main)
+(exit)

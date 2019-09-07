@@ -48,6 +48,7 @@ Welcome to Mug!
   (declare quitt)
   (declare sku)
   (declare bag)
+  (declare window)
   (swap! *from* (fn [_] top))
   (if-let [cmd (do (print (str "top" "> ")) (flush) (read-line))]
     (case (-> cmd (str/split #" ") (first))
@@ -59,7 +60,9 @@ Welcome to Mug!
                     
           ".q"  (quitt)
 
-          ".w"  (let [
+          ".w"  (window cmd)
+
+              #_(let [
                       retry (fn [] (do (println "usage: 'w low high") (flush) (top)))
                       bb    (str/split cmd #" ")
                      ]
@@ -299,7 +302,9 @@ Welcome to Mug!
  .h            this help message
  .h cmd        list of commands 
  .l            list named sets and pairs
- .w low high   create un-named set
+ .w low high   create un-named set, window of mkt caps
+ .b            bag, create a set (bag) by listing tickers
+ .a            add a ticker or tickers to the set (bag)
  .p <t> <t>    create un-named pair
  .q            to quit.\n\n") (flush))
   (top)
