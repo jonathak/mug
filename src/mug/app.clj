@@ -273,7 +273,9 @@
                                 (let [sn (read-string ss)] 
                                   (if (= (type sn) java.lang.Double)
                                       sn
-                                      777.777)))
+                                      (if (= (type sn) java.lang.Long)
+                                          (* 1.0 sn)
+                                          77777.777))))
  
                 ft            (fn [s] (-> (str/split s #" ") 
                                           ((fn [[xx yy]] 
@@ -281,7 +283,7 @@
                                                    y (mrs yy)]
 
                                                (if (or (= x 0.0) (= y 0.0))
-                                                   888.888
+                                                   88888.888
                                                    (/ (- y x) x)))))))
            
                 periods       (->> (-> (slurp nn) (str/split #"\"t\":") (rest))
@@ -296,7 +298,7 @@
                 result        (util/zip-strings (map str/trim-newline futures) transformed)
                ]
             (do (spit (str "resources//" (str/upper-case t) "_g_" b ".p") (reduce #(str %1 "\n" %2) result)) 
-                true)) 
+                [combined transformed])) 
           ;else
           (if (alp/putfridge3 t b)
             (if (.exists (java.io.File. nn))
@@ -318,12 +320,11 @@
        ]
     (->> (str/split gulp #"\n")
          (sort-by fngm)
+         (reverse)
          (take 5)
          (map (fn [s] 
                 (let [flr (fl s)]
                   (str (str/replace (second flr) #"00_00_00_E(D|S)T_" "") "\t" (last flr)))))
-                  ;(str (first flr) "\t" (last flr)))))
-                  ;(str flr))))
          (reduce #(str % "\n" %2))
     )
   )
