@@ -96,6 +96,7 @@
                         (str/replace #"\"" "")
                         (str/replace #":" " ")
                         (str/replace #"," " ")
+                        (str/replace #"\s\d+\w" " n")
                         (read-string))]
         (if-let [[{x 'symbol} _] data] 
           x

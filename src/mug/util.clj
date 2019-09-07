@@ -147,7 +147,7 @@
          ]
       (if "add input validation here"
         (do 
-          (println "just 1 point")
+          (when @*showcost* (println "just 1 point"))
           (try (:body (hmf u)) (catch Exception e 2)))
         (do
           (println "invalid bait")

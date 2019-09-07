@@ -68,6 +68,12 @@ Welcome to Mug!
           ".a"  (add-to-bag cmd)
           ".d"  (drop-from-bag cmd)
 
+          ".sl" (do (println (if (= 2 (count (str/split cmd #" ")))
+                        (let [[x y] (str/split cmd #" ")]
+                          (sl y))
+                        "none"))
+                    (@*from*))
+
           ".l"  (do (if (> (count @*fridge*) 0)
                         (println (reduce #(str %1 "\n" %2) (keys @*fridge*)))
                         (println "fridge is empty."))
