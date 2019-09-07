@@ -120,7 +120,7 @@
                                             (map read-string)
                                             (reduce +)
                                             (int)
-                                            (str)))))
+                                      ))))
 
 (def io    "institutional-ownership" (fn [t](when (t? t) (app/io t))))
 (def cc    "ceo-compensation"        (fn [t](when (t? t) (app/cc t))))
