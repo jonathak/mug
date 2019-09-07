@@ -40,6 +40,7 @@ Welcome to Mug!
 (def ^:dynamic  *pname*    (atom ""))
 (def ^:dynamic  *fridge*   (atom {}))
 (def ^:dynamic   *from*    (atom (fn [])))
+(def ^:dynamic *bag-buffer* (atom []))
 
 (defn top []
   (declare catch-all)
@@ -164,6 +165,7 @@ Welcome to Mug!
   (declare fill-bag)
   (declare add-to-bag)
   (declare drop-from-bag)
+  (declare sort-table)
   (swap! *from* (fn [_] bag))
   (if-let [cmd (do (print (str ":" @*name* "> ")) (flush) (read-line))]
     (case (-> cmd (str/split #" ") (first))
@@ -232,11 +234,17 @@ Welcome to Mug!
                                        (fun x))))
                      funs (map eat xs)] 
                  (if (> (count @*inventory*) 0)
-                     (do (println (str "t\t" (reduce #(str % "\t" %2) xs)))
-                         (doseq [t @*inventory*]
-                           (println (str (first t) (reduce str (map (fn [f] (str "\t" (f (first t)))) funs))))))
+                     (let [header  (str "t\t" (reduce #(str % "\t" %2) xs))
+                           newline (fn [t] (str (first t) (reduce str (map (fn [f] (str "\t" (f (first t)))) funs))))] 
+                       (println header)
+                       (swap! *bag-buffer* (fn [_] [header]))
+                       (doseq [t @*inventory*]
+                         (println (newline t))
+                         (swap! *bag-buffer* (fn [bag-so-far] (conj bag-so-far (newline t))))))
                      (println "need something to map."))
                  (bag))
+
+          ".srt" (sort-table)
 
           (catch-all cmd blelp) )))
 
@@ -324,6 +332,17 @@ Welcome to Mug!
                   (bag))
                (retry2)))
         (retry))))
+
+(defn sort-table []
+  (let [
+        [head & body] @*bag-buffer*
+        f (fn [s] (->> (str/split s #"\t") (second) (read-string) (int)))
+       ]
+    (println head)
+    (doseq [s (reverse (sort-by f body))]
+      (println s))))
+
+
 
 
 (defn help []
