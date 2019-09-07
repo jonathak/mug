@@ -244,7 +244,7 @@ Welcome to Mug!
                      (println "need something to map."))
                  (bag))
 
-          ".srt" (sort-table)
+          ".srt" (do (sort-table) (bag))
 
           (catch-all cmd blelp) )))
 
