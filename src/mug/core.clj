@@ -124,7 +124,6 @@
 
 (def io    "institutional-ownership" (fn [t](when (t? t) (app/io t))))
 (def cc    "ceo-compensation"        (fn [t](when (t? t) (app/cc t))))
-(def sl    "symbol lookup"           (fn [t](when (t? t) (app/sl t))))
 
 
 ;functions of t or t,b --------------------------------------------------------------;
@@ -140,6 +139,7 @@
                                                       (* 100.0) (int) (/ 100.0))))
 
 ;other functions --------------------------------------------------------------------;
+(def sl "symbol lookup [bait]" app/sl)
 (def all app/all)
 (def w "window [low,high] [data,low,high]" app/window)
 (def wh "window-htm [low,high] [data,low,high]" app/window-htm)

@@ -79,7 +79,7 @@
   (let [all (->> (-> "resources/iexsymbols.txt" (slurp) (str/split #"\n"))
                  (map #(symbol %)))]
     (fn [t]
-      (->> t (tfmt) (in? all)))))
+      (->> t (tfmt) (in? all) ))))
 
 ;--------------------------------------------------------;
 

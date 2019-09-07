@@ -24,6 +24,17 @@ Welcome to Mug!
 
 (def rs read-string) ;abbreviation
 
+(defn check-all-true [list-of-booleans] 
+  (if (> (count list-of-booleans) 0)
+      (let [x (first list-of-booleans)]
+        (if (or (= x nil) (= x false))
+            false
+            (if (= 1 (count list-of-booleans))
+                true
+                (check-all-true (rest list-of-booleans)))))
+      ;else
+      true))
+
 (def ^:dynamic *inventory* (atom []))
 (def ^:dynamic   *name*    (atom ""))
 (def ^:dynamic  *pname*    (atom ""))
@@ -67,6 +78,21 @@ Welcome to Mug!
                                       (bag))
                                   (retry)))
                             (retry)))
+                      (retry)))
+
+          ".b"  (let [
+                      retry  (fn [] (do (println "usage: 'b tic1 tic2 ...") (flush) (top)))
+                      retry2 (fn [] (do (println "did you enter an incorrect ticker?") (flush) (top)))
+                      bb    (str/split cmd #" ")
+                     ]
+                  (if (> (count bb) 1)
+                      (let [[_ & tics] bb] 
+                        (if (check-all-true (map t? tics))
+                            (do (swap! *inventory* (fn [_] (map (fn [tic] [(util/tfmt tic) (mkt tic)]) tics)))
+                                (swap! *name* (fn [_] "fresh"))
+                                (swap! *fridge* (fn [fridge] (assoc fridge "fresh" @*inventory*)))
+                                (bag))
+                            (retry2)))
                       (retry)))
 
           ".l"  (do (if (> (count @*fridge*) 0)
@@ -196,7 +222,7 @@ Welcome to Mug!
 
           ".map" (let [xs (rest (str/split cmd #" "))
                         s (if (= (count xs) 1)
-                              (str "shasta.core/" (first xs))
+                              (str "mug.core/" (first xs))
                               (reduce #(str %1 " " %2)  xs))
                         f (eval (read-string s))] 
                    (doseq [t @*inventory*]
@@ -204,7 +230,7 @@ Welcome to Mug!
                    (bag))
 
           ".m" (let [xs (rest (str/split cmd #" "))
-                     fun (fn [x] (eval (read-string (str "shasta.core/" x))))
+                     fun (fn [x] (eval (read-string (str "mug.core/" x))))
                      eat (fn [x] (let [y (str/split x #"!")] 
                                    (if (= (count y) 2)
                                        (let [[a b] y
@@ -237,7 +263,7 @@ Welcome to Mug!
                 (swap! *name* (fn [_] (util/tfmt cmd)))
                 (sku cmd))
             (if (= 2 (count cmdlist))
-                (let [[t c] cmdlist] (do (println ((eval (read-string (str "shasta.core/" c))) t)) (flush) (@*from*)))
+                (let [[t c] cmdlist] (do (println ((eval (read-string (str "mug.core/" c))) t)) (flush) (@*from*)))
                 (do (println "too many arguments?") (flush) (@*from*))))
         (if (contains? @*fridge* cmd)
             (do (swap! *inventory* (fn [_] (get @*fridge* cmd)))
@@ -335,5 +361,5 @@ Welcome to Mug!
 )
 
 (defn quitt [] 
-  (do (println "Thanks for using Shasta.\nGoodbye.")))
+  (do (println "Thanks for using Mug.\nGoodbye.")))
 
