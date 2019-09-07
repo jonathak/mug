@@ -49,6 +49,9 @@ Welcome to Mug!
   (declare sku)
   (declare bag)
   (declare window)
+  (declare fill-bag)
+  (declare add-to-bag)
+  (declare drop-from-bag)
   (swap! *from* (fn [_] top))
   (if-let [cmd (do (print (str "top" "> ")) (flush) (read-line))]
     (case (-> cmd (str/split #" ") (first))
@@ -61,42 +64,9 @@ Welcome to Mug!
           ".q"  (quitt)
 
           ".w"  (window cmd)
-
-              #_(let [
-                      retry (fn [] (do (println "usage: 'w low high") (flush) (top)))
-                      bb    (str/split cmd #" ")
-                     ]
-                  (if (= (count bb) 3)
-                      (let [[_ l h] bb] 
-                        (if (and l h)
-                            (let [ll (rs l)
-                                  hh (rs h)]
-                              (if (and (= (type ll) java.lang.Long) 
-                                       (= (type hh) java.lang.Long)
-                                       (> hh ll))
-                                  (do (swap! *inventory* (fn [_] (w ll hh)))
-                                      (swap! *name* (fn [_] "fresh"))
-                                      (swap! *fridge* (fn [fridge] (assoc fridge "fresh" @*inventory*))) 
-                                      (wh ll hh)
-                                      (bag))
-                                  (retry)))
-                            (retry)))
-                      (retry)))
-
-          ".b"  (let [
-                      retry  (fn [] (do (println "usage: 'b tic1 tic2 ...") (flush) (top)))
-                      retry2 (fn [] (do (println "did you enter an incorrect ticker?") (flush) (top)))
-                      bb    (str/split cmd #" ")
-                     ]
-                  (if (> (count bb) 1)
-                      (let [[_ & tics] bb] 
-                        (if (check-all-true (map t? tics))
-                            (do (swap! *inventory* (fn [_] (map (fn [tic] [(util/tfmt tic) (mkt tic)]) tics)))
-                                (swap! *name* (fn [_] "fresh"))
-                                (swap! *fridge* (fn [fridge] (assoc fridge "fresh" @*inventory*)))
-                                (bag))
-                            (retry2)))
-                      (retry)))
+          ".b"  (fill-bag cmd)
+          ".a"  (add-to-bag cmd)
+          ".d"  (drop-from-bag cmd)
 
           ".l"  (do (if (> (count @*fridge*) 0)
                         (println (reduce #(str %1 "\n" %2) (keys @*fridge*)))
@@ -185,6 +155,9 @@ Welcome to Mug!
   (declare quitt)
   (declare catch-all)
   (declare window)
+  (declare fill-bag)
+  (declare add-to-bag)
+  (declare drop-from-bag)
   (swap! *from* (fn [_] bag))
   (if-let [cmd (do (print (str ":" @*name* "> ")) (flush) (read-line))]
     (case (-> cmd (str/split #" ") (first))
@@ -196,6 +169,9 @@ Welcome to Mug!
           ".q"  (quitt)
 
           ".w"  (window cmd)
+          ".b"  (fill-bag cmd)
+          ".a"  (add-to-bag cmd)
+          ".d"  (drop-from-bag cmd)
 
           ".count" (do (println (count @*inventory*)) (bag))
 
@@ -295,6 +271,55 @@ Welcome to Mug!
               (retry)))
         (retry))))
 
+(defn fill-bag [cmd]
+  (let [
+        retry  (fn [] (do (println "usage: 'b tic1 tic2 ...") (flush) (top)))
+        retry2 (fn [] (do (println "did you enter an incorrect ticker?") (flush) (top)))
+        bb    (str/split cmd #" ")
+       ]
+    (if (> (count bb) 1)
+        (let [[_ & tics] bb] 
+          (if (check-all-true (map t? tics))
+              (do (swap! *inventory* (fn [_] (map (fn [tic] [(util/tfmt tic) (mkt tic)]) tics)))
+                  (swap! *name* (fn [_] "fresh"))
+                  (swap! *fridge* (fn [fridge] (assoc fridge "fresh" @*inventory*)))
+                  (bag))
+               (retry2)))
+        (retry))))
+
+(defn add-to-bag [cmd]
+  (let [
+        retry  (fn [] (do (println "usage: 'a tic1 tic2 ...") (flush) (top)))
+        retry2 (fn [] (do (println "did you enter an incorrect ticker?") (flush) (top)))
+        bb    (str/split cmd #" ")
+       ]
+    (if (> (count bb) 1)
+        (let [[_ & tics] bb] 
+          (if (check-all-true (map t? tics))
+              (do (swap! *inventory* (fn [old] (concat old (map (fn [tic] [(util/tfmt tic) (mkt tic)]) tics))))
+                  (swap! *name* (fn [_] "fresh"))
+                  (swap! *fridge* (fn [fridge] (assoc fridge "fresh" @*inventory*)))
+                  (bag))
+               (retry2)))
+        (retry))))
+
+(defn drop-from-bag [cmd]
+  (let [
+        retry  (fn [] (do (println "usage: 'd tic1") (flush) (top)))
+        retry2 (fn [] (do (println "did you enter an incorrect ticker?") (flush) (top)))
+        bb    (str/split cmd #" ")
+       ]
+    (if (= (count bb) 2)
+        (let [[_ tic] bb] 
+          (if (t? tic)
+              (do (swap! *inventory* (fn [old] (remove (fn [[x y]] (util/t=? x tic)) old)))
+                  (swap! *name* (fn [_] "fresh"))
+                  (swap! *fridge* (fn [fridge] (assoc fridge "fresh" @*inventory*)))
+                  (bag))
+               (retry2)))
+        (retry))))
+
+
 (defn help []
   (do (print "
  <name>        load symbol or named set or pair 
@@ -305,6 +330,7 @@ Welcome to Mug!
  .w low high   create un-named set, window of mkt caps
  .b            bag, create a set (bag) by listing tickers
  .a            add a ticker or tickers to the set (bag)
+ .d            delete a ticker from the set (bag)
  .p <t> <t>    create un-named pair
  .q            to quit.\n\n") (flush))
   (top)

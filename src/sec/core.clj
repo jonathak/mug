@@ -1,6 +1,6 @@
 (ns sec.core
-  (:require [shasta.util :as util]
-            [shasta.app  :as app]
+  (:require [mug.util :as util]
+            [mug.app  :as app]
             [clj-http.client :as client]
             [clojure.string :as str])
   (:gen-class))
