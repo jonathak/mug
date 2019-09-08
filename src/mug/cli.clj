@@ -94,7 +94,7 @@ Welcome to Mug!
   (declare quitt)
   (declare bag)
   (declare window)
-  (swap! *from* (fn [_] (sku t)))
+  ;(swap! *from* (fn [_] (sku t)))
   (if-let [cmd (do (print (str "." @*name* "> ")) (flush) (read-line))]
     (do (case (-> cmd (str/split #" ") (first))
               ".u"  (do (swap! *name* (fn [_] @*pname*)) (@*from*))
@@ -347,7 +347,7 @@ Welcome to Mug!
 (defn sort-table []
   (let [
         [head & body] @*bag-buffer*
-        f (fn [s] (->> (str/split s #"\t") (second) (read-string) (int)))
+        f (fn [s] (->> (str/split s #"\t") (second) (read-string)))
        ]
     (println head)
     (doseq [s (reverse (sort-by f body))]
@@ -437,7 +437,7 @@ Welcome to Mug!
  .count       companies in set (bag)
  .map         displays table of single attribute by ticker for set
  .m           same as .map but accepts multiple attributes
- .srt         sorts (reverse) .m-generated table by first data column
+ .srt         sorts (reverse) .map-generated or .m-generated table by first data column
  .p <t> <t>    create un-named pair (not yet implimented)
  .noisy        (state: show data usage points)
  .quiet        (state: hide data usage points)
