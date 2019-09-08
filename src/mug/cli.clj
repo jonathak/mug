@@ -290,7 +290,7 @@ Welcome to Mug!
                     (do (swap! *inventory* (fn [_] (w ll hh)))
                         (swap! *name* (fn [_] "fresh"))
                         (swap! *fridge* (fn [fridge] (assoc fridge "fresh" @*inventory*))) 
-                        (wh ll hh)
+                        (w ll hh)
                         (bag))
                     (retry)))
               (retry)))
