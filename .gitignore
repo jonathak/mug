@@ -1,4 +1,6 @@
 resources/
 target/
 test/
-
+.lein-repl-history
+src/.DS_Store
+out.htm

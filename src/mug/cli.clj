@@ -61,6 +61,8 @@ Welcome to Mug!
                         (shmelp)
                         (help))
                     (help))
+
+          ".doc" (do (browse-url "./doc/mug.pdf") (@*from*))
                     
           ".q"  (quitt)
 
@@ -68,6 +70,8 @@ Welcome to Mug!
           ".b"  (fill-bag cmd)
           ".a"  (add-to-bag cmd)
           ".d"  (drop-from-bag cmd)
+
+          ".p"  (do (println ".p not yet implimented") (@*from*))
 
           ".sl" (do (println (if (= 2 (count (str/split cmd #" ")))
                         (let [[x y] (str/split cmd #" ")]
@@ -80,8 +84,8 @@ Welcome to Mug!
                         (println "fridge is empty."))
                         (top))
 
-          ".verbose"  (do (util/verbose) (top))
-          ".concise"  (do (util/concise) (top))
+          ".noisy"  (do (util/verbose) (top))
+          ".quiet"  (do (util/concise) (top))
 
           (catch-all cmd help) )))
 
@@ -90,11 +94,13 @@ Welcome to Mug!
   (declare quitt)
   (declare bag)
   (declare window)
-  ;(swap! *from* (fn [_] (sku t)))
+  (swap! *from* (fn [_] (sku t)))
   (if-let [cmd (do (print (str "." @*name* "> ")) (flush) (read-line))]
     (do (case (-> cmd (str/split #" ") (first))
               ".u"  (do (swap! *name* (fn [_] @*pname*)) (@*from*))
               ".q"  (quitt)
+
+              ".doc" (do (browse-url "./doc/mug.pdf") (@*from*))
 
               ".l"  (do (if (> (count @*fridge*) 0)
                             (println (reduce #(str %1 "\n" %2) (keys @*fridge*)))
@@ -170,11 +176,16 @@ Welcome to Mug!
   (if-let [cmd (do (print (str ":" @*name* "> ")) (flush) (read-line))]
     (case (-> cmd (str/split #" ") (first))
 
+          ".p"        (do (println ".p not yet implimented") (@*from*))
+
           ".verbose"  (do (util/verbose) (bag))
           ".concise"  (do (util/concise) (bag))
 
           ".u"  (top)
           ".q"  (quitt)
+
+          ".h"   (blelp)
+          ".doc" (do (browse-url "./doc/mug.pdf") (@*from*))
 
           ".w"  (window cmd)
           ".b"  (fill-bag cmd)
@@ -350,13 +361,18 @@ Welcome to Mug!
  <name>        load symbol or named set or pair 
  <name> <cmd>  evaluates command (cmd) of name
  .h            this help message
- .h cmd        list of commands 
+ .doc          open Mud documentation
+ .h cmd        list of commands of the type (cmd ticker)
+ .sl <cname>   symbol lookup by company name
  .l            list named sets and pairs
+ <ticker> l    lists ticker-specific commands
  .w low high   create un-named set, window of mkt caps
  .b            bag, create a set (bag) by listing tickers
  .a            add a ticker or tickers to the set (bag)
  .d            delete a ticker from the set (bag)
- .p <t> <t>    create un-named pair
+ .p <t> <t>    create un-named pair (not yet implimented)
+ .noisy        (state: show data usage points)
+ .quiet        (state: hide data usage points)
  .q            to quit.\n\n") (flush))
   (top)
 )
@@ -406,11 +422,27 @@ Welcome to Mug!
 (defn blelp []
   (do (print "
  <name>        load symbol or named set or pair 
+ <name> <cmd>  evaluates command (cmd) of name
  .h            this help message
+ .doc          open Mud documentation
+ .h cmd        list of commands of the type (cmd ticker)
+ .sl <cname>   symbol lookup by company name
+ <ticker> l    lists ticker-specific commands
+ .w low high   create un-named set, window of mkt caps
+ .b            bag, create a set (bag) by listing tickers
+ .a            add a ticker or tickers to the set (bag)
+ .d            delete a ticker from the set (bag)
+ .u            up to top
+ .doc          Mug documentation
+ .count       companies in set (bag)
+ .map         displays table of single attribute by ticker for set
+ .m           same as .map but accepts multiple attributes
+ .srt         sorts (reverse) .m-generated table by first data column
+ .p <t> <t>    create un-named pair (not yet implimented)
+ .noisy        (state: show data usage points)
+ .quiet        (state: hide data usage points)
  .n            list named sets and pairs
  .l            list members of loaded set or pair
- .w low high   create un-named set
- .p <t> <t>    create un-named pair
  .s <n>        name the current set or pair
  .q            to quit.\n\n") (flush))
   (bag)
