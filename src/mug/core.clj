@@ -21,6 +21,7 @@
       (int)))
 
 (def t? util/valid-ticker?)
+(def industries app/industries)
 
 ;functions of t ---------------------------------------------------------------------;
 (def cname "company name"            (fn [t](when (t? t) (app/cname t))))

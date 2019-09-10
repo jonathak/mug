@@ -1,7 +1,7 @@
 (ns mug.util
   (:require [clj-http.client :as client]
             [clojure.string :as str])
-  (:use     [mug.fixtures])
+  (:use     [mug.fixtures]) ;biomktcaps
   (:gen-class))
 
 
@@ -490,6 +490,27 @@
        ]
     s)
 )
+
+(defn get-mktcap
+"gets fresh mkt cap frem keystats only costs one point"
+[t]
+  (let [
+        tt (tfmt t)
+        base-url "https://cloud.iexapis.com/"
+        version "beta"
+        endpoint-path (str "/stock/" tt "/stats/marketcap")
+        query-string (str "?token=" (:iexcloud keychain))
+        u (str base-url version endpoint-path query-string)
+        hm (try (client/get u {:cookie-policy :standard}) (catch Exception e 1))
+        s (try (:body hm) (catch Exception e 2))
+       ]
+    s)
+)
+
+(defn freshnup [fridge]
+  "updates mug.fixtures/biomktcaps"
+  []
+"to do")
 
 (defn keystat-helper! [t, f]
   (fmt-helper t f keystats!))

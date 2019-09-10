@@ -42,6 +42,27 @@ Welcome to Mug!
 (def ^:dynamic   *from*    (atom (fn [])))
 (def ^:dynamic *bag-buffer* (atom []))
 
+(defn industry?
+  "returns fulltext industry name given industry abbreviation"
+  [short-form]
+  (let [
+        i-a (->> (-> (slurp "resources/industry-abbreviations.txt")
+                     (str/split #"\n"))
+                  (map #(str/split % #"\t"))
+                  (map (fn [[a b]] [(util/tfmt a) b]))
+                  (into {}))
+       ]
+    (get i-a (util/tfmt short-form))))
+
+(defn industry-tickers
+  "gets all tickers in a given industry (using abbreviation)"
+  [indust-abbrev]
+  (let [
+        indust  (industry? indust-abbrev)
+        i-test? (fn [x] (= indust (i x)))
+       ]
+  (filter i-test? (util/iex-symbols!))))
+
 (defn top []
   (declare catch-all)
   (declare shmelp)
@@ -87,7 +108,31 @@ Welcome to Mug!
           ".noisy"  (do (util/verbose) (top))
           ".quiet"  (do (util/concise) (top))
 
+          ".nu"     (new-universe)
+
           (catch-all cmd help) )))
+
+(defn new-universe []
+  (declare u-help)
+  (declare add-industry)
+  (swap! *from* (fn [_] new-universe))
+  (if-let [cmd     (do (print (str "universe" "> ")) (flush) (read-line))]
+    (let  [
+           abbrev  (fn [q] (->> (str/split q #" +") (map first) (reduce str)))
+                                                 
+           wrapper (fn [x] (str (abbrev x) "\t" x))
+          ]
+      (case (-> cmd (str/split #" ") (first))
+            ".h"  (u-help)
+            ".q"  (quitt)
+            ".u"  (top)
+            ".li" (do (-> (slurp "resources/industry-abbreviations.txt")
+                          (println))
+                      (@*from*))
+            ".ai" (add-industry)
+          (catch-all cmd help)))))
+
+(defn add-industry [i-abbrev] 0)
 
 (defn sku [t]
   (declare shmelp)
@@ -354,25 +399,38 @@ Welcome to Mug!
       (println s))))
 
 
+(defn u-help 
+  "commands for creating and limiting the universe of companies"
+  []
+  (do (println 
+"
+ .h            this help message
+ .ai abc       limit the universe to specific industries
+ .li           list all industries
+ .q            quit Mug!
+ .u            up to top level
+"
+  ) (flush))
+  (@*from*))
 
 
 (defn help []
   (do (print "
- <name>        load symbol or named set or pair 
- <name> <cmd>  evaluates command (cmd) of name
  .h            this help message
  .doc          open Mud documentation
- .h cmd        list of commands of the type (cmd ticker)
+ .h cmd        list of ticker-specific commands
  .sl <cname>   symbol lookup by company name
- .l            list named sets and pairs
- <ticker> l    lists ticker-specific commands
+ .noisy        (state: show external data-usage alerts)
+ .quiet        (state: hide external data-usage alerts)
  .w low high   create un-named set, window of mkt caps
  .b            bag, create a set (bag) by listing tickers
  .a            add a ticker or tickers to the set (bag)
  .d            delete a ticker from the set (bag)
+ <ticker> h    result of ticker-specific commands 
+ <ticker> <cmd>  evaluates command (cmd) of name
+ .l            list named sets and pairs
  .p <t> <t>    create un-named pair (not yet implimented)
- .noisy        (state: show data usage points)
- .quiet        (state: hide data usage points)
+ <name>        load symbol or named set or pair
  .q            to quit.\n\n") (flush))
   (top)
 )
