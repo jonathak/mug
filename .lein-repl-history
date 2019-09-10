@@ -1,8 +1,6 @@
 (-main)
 (require 'mug.cli :reload)
 (-main)
-(require 'mug.cli :reload)
-(-main)
 (exit
 )
 (exit)
@@ -496,5 +494,7 @@ industries
 (industry? 'AIR)
 (require 'mug.cli :reload)
 (industry-tickers 'AIR)
+(-main)
+(exit)
 (-main)
 (exit)

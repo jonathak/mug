@@ -74,6 +74,7 @@ Welcome to Mug!
   (declare fill-bag)
   (declare add-to-bag)
   (declare drop-from-bag)
+  (declare new-universe)
   (swap! *from* (fn [_] top))
   (if-let [cmd (do (print (str "top" "> ")) (flush) (read-line))]
     (case (-> cmd (str/split #" ") (first))
