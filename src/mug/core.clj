@@ -77,6 +77,8 @@
                                            ((fn [x] (if (= x 0) -1 x))) ; so mkt can be divisor
                                         ))))
 
+(def k-mkt "mktcap from keystats"    (fn [t] (util/get-mktcap t)))
+
 (def c     "cash"                    (fn [t] (when (t? t)
                                        (-> (app/cash+ t)
                                            (simplenum)))))

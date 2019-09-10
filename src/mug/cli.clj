@@ -54,7 +54,7 @@ Welcome to Mug!
        ]
     (get i-a (util/tfmt short-form))))
 
-(defn industry-tickers
+(defn industry-tickers!
   "gets all tickers in a given industry (using abbreviation)"
   [indust-abbrev]
   (let [
@@ -62,6 +62,15 @@ Welcome to Mug!
         i-test? (fn [x] (= indust (i x)))
        ]
   (filter i-test? (util/iex-symbols!))))
+
+(defn industry-tickers
+  "gets all tickers in a given industry (using abbreviation)"
+  [indust-abbrev]
+  (let [
+        indust  (industry? indust-abbrev)
+        i-test? (fn [x] (= indust (i x)))
+       ]
+  (filter i-test? (map symbol (str/split (slurp "resources/iexsymbols.txt") #"\n")))))
 
 (defn top []
   (declare catch-all)
@@ -102,7 +111,9 @@ Welcome to Mug!
                     (@*from*))
 
           ".l"  (do (if (> (count @*fridge*) 0)
-                        (println (reduce #(str %1 "\n" %2) (keys @*fridge*)))
+                        (println (reduce #(str %1 "\n" %2) (map
+                                                             (fn [k] (str (count (get @*fridge* k)) "\t" k))
+                                                             (keys @*fridge*))))
                         (println "fridge is empty."))
                         (top))
 
@@ -130,10 +141,20 @@ Welcome to Mug!
             ".li" (do (-> (slurp "resources/industry-abbreviations.txt")
                           (println))
                       (@*from*))
-            ".ai" (add-industry)
+            ".ai" (do (println "this may take a minute...")
+                      (add-industry cmd))
           (catch-all cmd help)))))
 
-(defn add-industry [i-abbrev] 0)
+(defn add-industry [cmd]
+  (let [
+        [_ i-abbrev] (str/split cmd #" +") 
+        tics (industry-tickers (util/tfmt i-abbrev))
+       ]
+    (doseq [tic tics]
+      (swap! *inventory* (fn [inv] (conj inv [tic (k-mkt tic)]))))
+    (swap! *name* (fn [_] "fresh"))
+    (bag)
+))
 
 (defn sku [t]
   (declare shmelp)
