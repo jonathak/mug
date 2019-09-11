@@ -141,6 +141,20 @@ Welcome to Mug!
             ".li" (do (-> (slurp "resources/industry-abbreviations.txt")
                           (println))
                       (@*from*))
+
+            ".si" (do (->> (-> (slurp "resources/industry-abbreviations.txt")
+                               (str/split #"\n"))
+                           (filter 
+                             (fn [x]
+                                (re-find 
+                                  (re-pattern 
+                                    (str "(?ix) " (second
+                                                    (str/split cmd #" +"))))
+                                  x)))
+                           (reduce #(str % "\n" %2))
+                           (println)))
+
+
             ".ai" (do (println "this may take a minute...")
                       (add-industry cmd))
           (catch-all cmd help)))))
@@ -429,6 +443,7 @@ Welcome to Mug!
  .h            this help message
  .ai abc       limit the universe to specific industries
  .li           list all industries
+ .si           search industries
  .q            quit Mug!
  .u            up to top level
 "
@@ -442,6 +457,7 @@ Welcome to Mug!
  .doc          open Mud documentation
  .h cmd        list of ticker-specific commands
  .sl <cname>   symbol lookup by company name
+ .nu           new universe
  .noisy        (state: show external data-usage alerts)
  .quiet        (state: hide external data-usage alerts)
  .w low high   create un-named set, window of mkt caps
