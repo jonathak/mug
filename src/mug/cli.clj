@@ -152,7 +152,8 @@ Welcome to Mug!
                                                     (str/split cmd #" +"))))
                                   x)))
                            (reduce #(str % "\n" %2))
-                           (println)))
+                           (println))
+                      (@*from*))
 
 
             ".ai" (do (println "this may take a minute...")
