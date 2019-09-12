@@ -6,7 +6,7 @@
             [sec.core       :as sec]
             [clojure.string :as str]
             [clojure.java.browse :refer [browse-url]])
-  (:use [mug.core])
+  (:use [mug.core] [mug.help])
   (:gen-class))
 
 (defn -main
@@ -41,6 +41,7 @@ Welcome to Mug!
 (def ^:dynamic  *fridge*   (atom {}))
 (def ^:dynamic   *from*    (atom (fn [])))
 (def ^:dynamic *bag-buffer* (atom []))
+(def ^:dynamic *universe*  (atom []))
 
 (defn industry?
   "returns fulltext industry name given industry abbreviation"
@@ -74,8 +75,6 @@ Welcome to Mug!
 
 (defn top []
   (declare catch-all)
-  (declare shmelp)
-  (declare help)
   (declare quitt)
   (declare sku)
   (declare bag)
@@ -83,15 +82,12 @@ Welcome to Mug!
   (declare fill-bag)
   (declare add-to-bag)
   (declare drop-from-bag)
-  (declare new-universe)
+  (declare edit-universe)
+  (declare show-universe)
   (swap! *from* (fn [_] top))
   (if-let [cmd (do (print (str "top" "> ")) (flush) (read-line))]
     (case (-> cmd (str/split #" ") (first))
-          ".h"  (if (= 2 (count (str/split cmd #" "))) 
-                    (if (= "cmd" (second (str/split cmd #" "))) 
-                        (shmelp)
-                        (help))
-                    (help))
+          ".h"  (help top)
 
           ".doc" (do (browse-url "./doc/mug.pdf") (@*from*))
                     
@@ -117,17 +113,26 @@ Welcome to Mug!
                         (println "fridge is empty."))
                         (top))
 
-          ".noisy"  (do (util/verbose) (top))
-          ".quiet"  (do (util/concise) (top))
+          ".noisy"  (do (util/verbose) (println "ok i will let you know when you consume points") (top))
+          ".quiet"  (do (util/concise) (println "ok i will be quite about point consumption") (top))
 
-          ".nu"     (new-universe)
+          ".eu"     (edit-universe)
+          ".su"     (show-universe)
 
           (catch-all cmd help) )))
 
-(defn new-universe []
-  (declare u-help)
+(defn show-universe [] 
+  (do (if (> (count @*universe*) 0)
+        (println
+          (reduce
+            (fn [x y] (str x "\n" y)) 
+            @*universe*))
+        (println "the universe is empty"))
+      (@*from*)))
+
+(defn edit-universe []
   (declare add-industry)
-  (swap! *from* (fn [_] new-universe))
+  (swap! *from* (fn [_] edit-universe))
   (if-let [cmd     (do (print (str "universe" "> ")) (flush) (read-line))]
     (let  [
            abbrev  (fn [q] (->> (str/split q #" +") (map first) (reduce str)))
@@ -135,7 +140,7 @@ Welcome to Mug!
            wrapper (fn [x] (str (abbrev x) "\t" x))
           ]
       (case (-> cmd (str/split #" ") (first))
-            ".h"  (u-help)
+            ".h"  (help edit-universe)
             ".q"  (quitt)
             ".u"  (top)
             ".li" (do (-> (slurp "resources/industry-abbreviations.txt")
@@ -151,13 +156,22 @@ Welcome to Mug!
                                     (str "(?ix) " (second
                                                     (str/split cmd #" +"))))
                                   x)))
+                           ((fn [y] (if (= y '()) '("none") y)))
                            (reduce #(str % "\n" %2))
                            (println))
                       (@*from*))
 
+            ".cl" (do (swap! *universe* (fn [_] []))
+                      (println "the universe is empty")
+                      (@*from*))
 
             ".ai" (do (println "this may take a minute...")
                       (add-industry cmd))
+
+            ".su" (do (show-universe))
+
+            ".cu" (@*from*)
+
           (catch-all cmd help)))))
 
 (defn add-industry [cmd]
@@ -166,13 +180,11 @@ Welcome to Mug!
         tics (industry-tickers (util/tfmt i-abbrev))
        ]
     (doseq [tic tics]
-      (swap! *inventory* (fn [inv] (conj inv [tic (k-mkt tic)]))))
-    (swap! *name* (fn [_] "fresh"))
-    (bag)
+      (swap! *universe* (fn [inv] (conj inv tic))))
+    (@*from*)
 ))
 
 (defn sku [t]
-  (declare shmelp)
   (declare quitt)
   (declare bag)
   (declare window)
@@ -241,12 +253,12 @@ Welcome to Mug!
                        ".fo"      (fo t)
                        ".io"      (io t)
                        ".cc"      (cc t)
+                       ".zc"      (zipcode t)
                        ".refresh" (app/refresh t)
-                       ".h"       (shmelp)
+                       ".h"       (shmelp (partial sku t))
                        "")) (when (not (= ".q" cmd)) (sku t)) ))) ))))
 
 (defn bag []
-  (declare blelp)
   (declare quitt)
   (declare catch-all)
   (declare window)
@@ -260,13 +272,13 @@ Welcome to Mug!
 
           ".p"        (do (println ".p not yet implimented") (@*from*))
 
-          ".verbose"  (do (util/verbose) (bag))
-          ".concise"  (do (util/concise) (bag))
+          ".noisy"  (do (util/verbose) (bag))
+          ".quiet"  (do (util/concise) (bag))
 
           ".u"  (top)
           ".q"  (quitt)
 
-          ".h"   (blelp)
+          ".h"   (blelp bag)
           ".doc" (do (browse-url "./doc/mug.pdf") (@*from*))
 
           ".w"  (window cmd)
@@ -349,18 +361,26 @@ Welcome to Mug!
                 (swap! *name* (fn [_] (util/tfmt cmd)))
                 (sku cmd))
             (if (= 2 (count cmdlist))
-                (let [[t c] cmdlist] (do (println ((eval (read-string (str "mug.core/" c))) t)) (flush) (@*from*)))
+                (let [[t c] cmdlist] (do (println (try
+                                                    ((eval (read-string (str "mug.core/" c))) t)
+                                                    (catch java.lang.RuntimeException e "did you mispell a function?"))) 
+                                         (flush) (@*from*)))
                 (do (println "too many arguments?") (flush) (@*from*))))
         (if (contains? @*fridge* cmd)
             (do (swap! *inventory* (fn [_] (get @*fridge* cmd)))
                 (swap! *pname* (fn [_] @*name*))
                 (swap! *name* (fn [_] cmd))
                 (bag))
-            (do (println (str "\n No such name: " cmd)) (helpp))))))
+            (do (if (= (first cmd) \.)
+                    (println (str "\n that was not a valid command \n use .h for help "))
+                    (if (= (str/replace cmd #" +" "") "") 
+                        (@*from*)
+                        (println (str "\n Did you just mispell a ticker? \n Commands start with '.' "))))
+                (@*from*))))))
 
 (defn window [cmd]
   (let [
-        retry (fn [] (do (println "usage: 'w low high") (flush) (@*from*)))
+        retry (fn [] (do (println "usage: .w low high") (flush) (@*from*)))
         bb    (str/split cmd #" ")
        ]
     (if (= (count bb) 3)
@@ -434,116 +454,6 @@ Welcome to Mug!
     (println head)
     (doseq [s (reverse (sort-by f body))]
       (println s))))
-
-
-(defn u-help 
-  "commands for creating and limiting the universe of companies"
-  []
-  (do (println 
-"
- .h            this help message
- .ai abc       limit the universe to specific industries
- .li           list all industries
- .si           search industries
- .q            quit Mug!
- .u            up to top level
-"
-  ) (flush))
-  (@*from*))
-
-
-(defn help []
-  (do (print "
- .h            this help message
- .doc          open Mud documentation
- .h cmd        list of ticker-specific commands
- .sl <cname>   symbol lookup by company name
- .nu           new universe
- .noisy        (state: show external data-usage alerts)
- .quiet        (state: hide external data-usage alerts)
- .w low high   create un-named set, window of mkt caps
- .b            bag, create a set (bag) by listing tickers
- .a            add a ticker or tickers to the set (bag)
- .d            delete a ticker from the set (bag)
- <ticker> h    result of ticker-specific commands 
- <ticker> <cmd>  evaluates command (cmd) of name
- .l            list named sets and pairs
- .p <t> <t>    create un-named pair (not yet implimented)
- <name>        load symbol or named set or pair
- .q            to quit.\n\n") (flush))
-  (top)
-)
-
-(defn shmelp []
-  (do (print 
-"\n <name>        load symbol or named set or pair 
- .h            this help message
- .n            list named sets and pairs
- .l            list members of loaded set or pair
- .q            to quit.
- .cname company name
- .bas   basket
- .pr     prices 1D
- .pr x   prices 15m 5m 1m
- .fpr    fresh prices 1D
- .fpr x  fresh prices 15m 5m 1m
- .ngm   normalized gap moves
- .i     industry
- .web   website
- .oweb  open website
- .desc  description
- .ceo   ceo
- .s     sector
- .emp   employees
- .so    sharesoutstanding
- .pf    publicfloat
- .v     avg30Volume
- .b     beta
- .mkt   marketcap
- .c     cash
- .d     debt
- .r     revenue
- .g     gross
- .e     ebitda
- .d2e   dbtoeqty
- .ir    insider roster
- .db    deep book
- .sp    splits
- .fo    fund ownership
- .cff   cash flow financing
- .io    institutional-ownership
- .cc    ceo-compensation\n") (flush))
-  (@*from*)
-)
-
-(defn blelp []
-  (do (print "
- <name>        load symbol or named set or pair 
- <name> <cmd>  evaluates command (cmd) of name
- .h            this help message
- .doc          open Mud documentation
- .h cmd        list of commands of the type (cmd ticker)
- .sl <cname>   symbol lookup by company name
- <ticker> l    lists ticker-specific commands
- .w low high   create un-named set, window of mkt caps
- .b            bag, create a set (bag) by listing tickers
- .a            add a ticker or tickers to the set (bag)
- .d            delete a ticker from the set (bag)
- .u            up to top
- .doc          Mug documentation
- .count       companies in set (bag)
- .map         displays table of single attribute by ticker for set
- .m           same as .map but accepts multiple attributes
- .srt         sorts (reverse) .map-generated or .m-generated table by first data column
- .p <t> <t>    create un-named pair (not yet implimented)
- .noisy        (state: show data usage points)
- .quiet        (state: hide data usage points)
- .n            list named sets and pairs
- .l            list members of loaded set or pair
- .s <n>        name the current set or pair
- .q            to quit.\n\n") (flush))
-  (bag)
-)
 
 (defn quitt [] 
   (do (println "Thanks for using Mug.\nGoodbye.")))

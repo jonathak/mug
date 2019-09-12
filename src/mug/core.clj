@@ -72,7 +72,10 @@
 (def b     "beta"                (mm (fn [t] (when (t? t)
                                        (-> t (app/beta+ ) (read-string) (* 100.) (int) (/ 100.))))))
 
-(def k-mkt "mktcap from keystats"    (mm (fn [t] (-> (util/get-mktcap t) (simplenum)))))
+(def k-mkt "mktcap from keystats"    (mm (fn [t] (-> (util/get-mktcap t) 
+                                                     (simplenum)
+                                                     ((fn [x] (if (= x 0) -1 x))) ; so mkt can be divisor
+))))
 
 (def mkt   "marketcap"               k-mkt)
                                      ;(fn [t] (when (t? t)

@@ -504,6 +504,7 @@
         hm (try (client/get u {:cookie-policy :standard}) (catch Exception e 1))
         s (try (:body hm) (catch Exception e 2))
        ]
+    (when @*showcost* (println "just 1 point"))
     s)
 )
 
