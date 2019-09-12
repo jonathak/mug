@@ -1,12 +1,13 @@
 (ns mug.cli
   (:require [mug.core :refer :all ]
-            [mug.app   :as app]
-            [mug.util  :as util]
+            [mug.app        :as app]
+            [mug.util       :as util]
+            [mug.help       :as hlp]
             [alphav.core    :as alphav]
             [sec.core       :as sec]
             [clojure.string :as str]
             [clojure.java.browse :refer [browse-url]])
-  (:use [mug.core] [mug.help])
+  (:use [mug.core])
   (:gen-class))
 
 (defn -main
@@ -87,7 +88,7 @@ Welcome to Mug!
   (swap! *from* (fn [_] top))
   (if-let [cmd (do (print (str "top" "> ")) (flush) (read-line))]
     (case (-> cmd (str/split #" ") (first))
-          ".h"  (help top)
+          ".h"  (do (print hlp/t-help) (top))
 
           ".doc" (do (browse-url "./doc/mug.pdf") (@*from*))
                     
@@ -119,7 +120,7 @@ Welcome to Mug!
           ".eu"     (edit-universe)
           ".su"     (show-universe)
 
-          (catch-all cmd help) )))
+          (catch-all cmd) )))
 
 (defn show-universe [] 
   (do (if (> (count @*universe*) 0)
@@ -140,7 +141,7 @@ Welcome to Mug!
            wrapper (fn [x] (str (abbrev x) "\t" x))
           ]
       (case (-> cmd (str/split #" ") (first))
-            ".h"  (help edit-universe)
+            ".h"  (do (print hlp/u-help) (edit-universe))
             ".q"  (quitt)
             ".u"  (top)
             ".li" (do (-> (slurp "resources/industry-abbreviations.txt")
@@ -172,7 +173,7 @@ Welcome to Mug!
 
             ".cu" (@*from*)
 
-          (catch-all cmd help)))))
+          (catch-all cmd)))))
 
 (defn add-industry [cmd]
   (let [
@@ -202,6 +203,7 @@ Welcome to Mug!
                         (sku t))
 
               ".w"  (window cmd)
+              ".h"  (do (print hlp/s-help) (sku t))
 
               (if (cname cmd)
                   (do  (swap! *name* (fn [_] (util/tfmt cmd)))
@@ -255,7 +257,6 @@ Welcome to Mug!
                        ".cc"      (cc t)
                        ".zc"      (zipcode t)
                        ".refresh" (app/refresh t)
-                       ".h"       (shmelp (partial sku t))
                        "")) (when (not (= ".q" cmd)) (sku t)) ))) ))))
 
 (defn bag []
@@ -278,7 +279,7 @@ Welcome to Mug!
           ".u"  (top)
           ".q"  (quitt)
 
-          ".h"   (blelp bag)
+          ".h"   (do (print hlp/b-help) (bag)) 
           ".doc" (do (browse-url "./doc/mug.pdf") (@*from*))
 
           ".w"  (window cmd)
@@ -351,9 +352,9 @@ Welcome to Mug!
 
           ".srt" (do (sort-table) (bag))
 
-          (catch-all cmd blelp) )))
+          (catch-all cmd) )))
 
-(defn catch-all [cmd helpp]
+(defn catch-all [cmd]
   (let [cmdlist (str/split cmd #" ")]
     (if (cname (first cmdlist))
         (if (= 1 (count cmdlist))

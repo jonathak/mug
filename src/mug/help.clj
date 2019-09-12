@@ -1,7 +1,7 @@
 (ns mug.help
   (:gen-class))
 
-(def top-help
+(def t-help
 "
  .h            this help message
  .doc          open Mud documentation
@@ -30,20 +30,7 @@
  .u            up to top level
  .cl           clear universe\n\n")
 
-
-(defn help [from]
-  (cond
-    (= (type from) mug.cli$top) (do (print top-help))
-    (= (type from) mug.cli$edit_universe) (do (print u-help))
-
-    :else (do (println (str (type from)))))
-  (flush)
-  (from)
-)
-
-
-(defn shmelp [from]
-  (do (print 
+(def s-help
 "\n <name>        load symbol or named set or pair 
  .h            this help message
  .n            list named sets and pairs
@@ -81,12 +68,10 @@
  .cff   cash flow financing
  .io    institutional-ownership
  .zc    zipcode
- .cc    ceo-compensation\n") (flush))
-  (from)
-)
+ .cc    ceo-compensation\n")
 
-(defn blelp [from]
-  (do (print "
+(def b-help
+"
  <name>        load symbol or named set or pair 
  <name> <cmd>  evaluates command (cmd) of name
  .h            this help message
@@ -108,6 +93,4 @@
  .n            list named sets and pairs
  .l            list members of loaded set or pair
  .s <name>     name the current set or pair
- .q            to quit.\n\n") (flush))
-  (from)
-)
+ .q            to quit.\n\n")
