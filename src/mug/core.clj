@@ -148,6 +148,7 @@
                                                       (* 100.0) (int) (/ 100.0))))
 
 (def vs       "volume spikes"                   app/volume-spikes)
+(def tvs      "top volume spike"                app/top-volume-spike)
 
 
 ;other functions --------------------------------------------------------------------;

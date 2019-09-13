@@ -218,6 +218,7 @@ Welcome to Mug!
                        ".mov"     (mov t)
                        ".mvs"     (mvs t) 
                        ".vs"      (vs t)
+                       ".tvs"     (tvs t)
                        ".p"       (p t)
                        ".pr"      (prices t)
                        ".pr 15m"  (prices t "15Min?")

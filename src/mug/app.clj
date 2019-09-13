@@ -321,8 +321,11 @@
         fv (fn [s]  
              (-> (str/split s #" ")
                  ((fn [[_ _ _ _ _ _ c v]] (my-* v c)))))
+        recent? (fn [s] (or (= s "2019") (= s "2018")))
+        year? (fn [s] (-> s (str/split #" ") (second) (reverse) ((fn [[a b c d & e]] (str d c b a))) ))
        ]
     (->> (str/split gulp #"\n")
+         (filter (fn [s] (recent? (year? s)))) ;don't want anything too old
          (sort-by fv)
          (reverse)
          (take 5)
@@ -338,6 +341,15 @@
   )
 )
 
+(defn top-volume-spike [t]
+  (->> (str/split (volume-spikes t) #"\n")
+       (map #(str/split % #" "))
+       (map second)
+       (map read-string)
+       (apply max)
+       (str)
+))
+
 
 (defn movements 
   "sorted vector of 5 largest normalized gap moves"
@@ -348,14 +360,20 @@
         gulp (slurp (str "resources//" (str/upper-case t) "_g_" b ".p")) ;string
         fl   (fn [s] (-> s (str/split #" "))) ;string to list
         fngm (fn [s] (->> (fl s) (last) (read-string) ((fn [x] (if (< x 0) (- 0 x) x))))) ;string to ngm float (java.lang Comparable)
+        recent? (fn [s] (or (= s "2019") (= s "2018")))
+        year? (fn [s] (-> s (str/split #" ") (second) (reverse) ((fn [[a b c d & e]] (str d c b a))) ))
        ]
     (->> (str/split gulp #"\n")
+         (filter (fn [s] (recent? (year? s)))) ;don't want anything too old
          (sort-by fngm)
          (reverse)
          (take 5)
          (map (fn [s] 
                 (let [flr (fl s)]
-                  (str (str/replace (second flr) #"00_00_00_E(D|S)T_" "") "\t" (last flr)))))
+                  (str (str/replace (second flr) #"00_00_00_E(D|S)T_" "") "\t" (-> (last flr)
+                                                                                   (read-string)
+                                                                                   (* 100.0)
+                                                                                   (int))            " %"))))
          (reduce #(str % "\n" %2))
     )
   )
