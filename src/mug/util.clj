@@ -476,8 +476,9 @@
     (parsint
       (fun (str/upper-case (str t)) f))))
 
-(defn keystats! [t]
+(defn keystats! 
   "returns raw response body for a call to key API"
+  [t]
   (let [
         tt (tfmt t)
         base-url "https://cloud.iexapis.com/"

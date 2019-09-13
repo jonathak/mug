@@ -147,6 +147,9 @@
                                                   (-> (app/tot-abs-movements t) 
                                                       (* 100.0) (int) (/ 100.0))))
 
+(def vs       "volume spikes"                   app/volume-spikes)
+
+
 ;other functions --------------------------------------------------------------------;
 (def sl "symbol lookup [bait]" app/sl)
 (def all app/all)

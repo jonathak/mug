@@ -42,7 +42,6 @@
  .pr x   prices 15m 5m 1m
  .fpr    fresh prices 1D
  .fpr x  fresh prices 15m 5m 1m
- .ngm   normalized gap moves
  .i     industry
  .web   website
  .oweb  open website
@@ -68,7 +67,11 @@
  .cff   cash flow financing
  .io    institutional-ownership
  .zc    zipcode
- .cc    ceo-compensation\n")
+ .cc    ceo-compensation
+ .vs    volume spikes (in development)
+ .ngm   normalized gap moves
+ .mov   top 5 ngm
+ .mvs   scalar version of mov\n")
 
 (def b-help
 "

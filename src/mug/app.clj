@@ -282,7 +282,6 @@
                                           ((fn [[xx yy]] 
                                              (let [x (mrs xx)
                                                    y (mrs yy)]
-
                                                (if (or (= x 0.0) (= y 0.0))
                                                    88888.888
                                                    (/ (- y x) x)))))))
@@ -308,6 +307,37 @@
             false))))
     ([t]
       (normalized-gap-moves t "1D?")))
+
+
+(defn volume-spikes 
+  "sorted vector of 5 largest volume periods"
+  [t]
+  (print-all-prices t)
+  (let [
+        b    "1D?"
+        gulp (slurp (str "resources//" (str/upper-case t) "_a_" b ".p")) ;string
+        fl   (fn [s] (-> s (str/split #" "))) ;string to list
+        my-* (fn [v c] (* (read-string v) (read-string c)))
+        fv (fn [s]  
+             (-> (str/split s #" ")
+                 ((fn [[_ _ _ _ _ _ c v]] (my-* v c)))))
+       ]
+    (->> (str/split gulp #"\n")
+         (sort-by fv)
+         (reverse)
+         (take 5)
+         (map (fn [s] (str s " " (fv s))))
+         (map (fn [s] (str/split s #" ")))
+         (map (fn [[_ d _ _ _ _ _ _ vc]] [d vc]))
+         (map (fn [[d vc]] [(str/replace d #"_00_00_00_E(D|S)T" "") vc]))
+         (map (fn [[d vc]] [d (read-string vc)]))
+         (map (fn [[d vc]] [d (int (/ vc 1e6))]))
+         (map (fn [[d vc]] (str d " " vc)))
+         (reduce #(str % "\n" %2))
+    )
+  )
+)
+
 
 (defn movements 
   "sorted vector of 5 largest normalized gap moves"
