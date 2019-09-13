@@ -144,8 +144,7 @@
 (def mov      "top 5 ngm instances [t]"         app/movements)
 
 (def mvs      "scalar version of mov"           (fn [t] 
-                                                  (-> (app/tot-abs-movements t) 
-                                                      (* 100.0) (int) (/ 100.0))))
+                                                  (app/tot-abs-movements t)))
 
 (def vs       "volume spikes"                   app/volume-spikes)
 (def tvs      "top volume spike"                app/top-volume-spike)

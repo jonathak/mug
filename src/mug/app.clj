@@ -370,10 +370,15 @@
          (take 5)
          (map (fn [s] 
                 (let [flr (fl s)]
-                  (str (str/replace (second flr) #"00_00_00_E(D|S)T_" "") "\t" (-> (last flr)
-                                                                                   (read-string)
-                                                                                   (* 100.0)
-                                                                                   (int))            " %"))))
+                  (str (str/replace (second flr) #"00_00_00_E(D|S)T_" "") 
+                       "\t" 
+                       (-> (last flr)
+                           (read-string)
+                           (min 10.0)
+                           (* 100.0)
+                           (int)
+                       )
+                       " %"))))
          (reduce #(str % "\n" %2))
     )
   )
@@ -391,6 +396,8 @@
          (map read-string)
          (map fabs)
          (reduce +)
+         (* 0.2)
+         (int)
     )
   )
 )

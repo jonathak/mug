@@ -203,7 +203,17 @@ Welcome to Mug!
                         (sku t))
 
               ".w"  (window cmd)
-              ".h"  (do (print hlp/s-help) (sku t))
+              ".h"  (let [choice (do (print hlp/s-help-sub) 
+                                     (flush)
+                                     (read-line))]
+                      (case (first choice)
+                            \1 (do (print hlp/s-help-sub-quant) (sku t))
+                            \2 (do (print hlp/s-help-sub-web) (sku t))
+                            \3 (do (print hlp/s-help-sub-find) (sku t))
+                            \4 (do (print hlp/s-help-sub-info) (sku t))
+                            \5 (do (print hlp/s-help-sub-history) (sku t))
+                            \6 (do (print hlp/s-help-sub-nav) (sku t))
+                            (sku t)))
 
               (if (cname cmd)
                   (do  (swap! *name* (fn [_] (util/tfmt cmd)))
@@ -272,7 +282,10 @@ Welcome to Mug!
   (if-let [cmd (do (print (str ":" @*name* "> ")) (flush) (read-line))]
     (case (-> cmd (str/split #" ") (first))
 
-          ".p"        (do (println ".p not yet implimented") (@*from*))
+          ".p"      (do (println ".p not yet implimented") (@*from*))
+
+          ".cmds"   (do (println hlp/cmds)
+                        (bag))
 
           ".noisy"  (do (util/verbose) (bag))
           ".quiet"  (do (util/concise) (bag))
@@ -280,7 +293,16 @@ Welcome to Mug!
           ".u"  (top)
           ".q"  (quitt)
 
-          ".h"   (do (print hlp/b-help) (bag)) 
+          ".h"  (let [choice (do (print hlp/b-help-sub) 
+                                 (flush)
+                                 (read-line))]
+                      (case (first choice)
+                            \1 (do (print hlp/b-help-bag) (bag))
+                            \2 (do (print hlp/b-help-table) (bag))
+                            \3 (do (print hlp/b-help-nav) (bag))
+                            (bag)))
+
+
           ".doc" (do (browse-url "./doc/mug.pdf") (@*from*))
 
           ".w"  (window cmd)
@@ -364,7 +386,10 @@ Welcome to Mug!
                 (sku cmd))
             (if (= 2 (count cmdlist))
                 (let [[t c] cmdlist] (do (println (try
-                                                    ((eval (read-string (str "mug.core/" c))) t)
+                                                    ((eval (read-string (str "mug.core/" (if (= c "cff") 
+                                                                                             "cffd" 
+                                                                                             c)))) 
+                                                     t)
                                                     (catch java.lang.RuntimeException e "did you mispell a function?"))) 
                                          (flush) (@*from*)))
                 (do (println "too many arguments?") (flush) (@*from*))))
