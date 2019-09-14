@@ -179,10 +179,12 @@
   [t] 
   (let [hm (-> t (util/cash-flow+) (util/raw-to-clojure))]
     (if (> (count hm) 0)
-        (->> ('cashflow hm)
+        (->> (if (= [] ('cashflow hm))
+                 [{'reportDate '999 'cashFlowFinancing 9999}]
+                 ('cashflow hm))
              (map (fn [x] (str ('reportDate x) " " (-> ('cashFlowFinancing x)
-                                                      (#(if (= % 'null) 0 %))
-                                                      (/ 1e4) (int) (/ 1e2)))) )
+                                                       (#(if (= % 'null) 0 %))
+                                                       (/ 1e4) (int) (/ 1e2)))) )
             (reduce #(str %1 "\n" %2)) )
         "")))
 
