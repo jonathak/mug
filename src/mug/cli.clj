@@ -97,7 +97,7 @@ Welcome to Mug!
     (do (swap! *history* (fn [x] (conj @*history* cmd)))
         (case (-> cmd (str/split #" ") (first))
 
-          "\\"  (do '())
+          "\\"  (do (swap! *prior* (fn [_] (peek @*history*))) (top))
 
           ".h"  (do (print hlp/t-help) (top))
 
@@ -377,7 +377,13 @@ Welcome to Mug!
                    (bag))
 
           ".m" (let [xs (rest (str/split (str @*prior* cmd) #" "))
-                     fun (fn [x] (eval (read-string (str "mug.core/" x))))
+                     function? (fn [s] 
+                                 (util/in? 
+                                   ["emp" "so" "pf" "v" "b" "mkt" "c" "d" "r" "g" "e" "d2e" "cc" "mov" "mvs" "vs" "tvs" "web" "i" "s" "ceo" "cff" "zc"] 
+                                   s))
+                     fun (fn [x] (if (function? x)
+                                     (eval (read-string (str "mug.core/" x)))
+                                     (fn [_] 999)))
                      eat (fn [x] (let [y (str/split x #"!")] 
                                    (if (= (count y) 2)
                                        (let [[a b] y
