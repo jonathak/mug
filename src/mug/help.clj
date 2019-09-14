@@ -86,7 +86,7 @@ What do you want help with?
  .fo    fund ownership
  .cff   cash flow financing
  .io    institutional-ownership
- .zc    zipcode
+ .zc    zipcode (sec web scrape, very slow)
  .mov  top 5 normalized gap moves
  .vs   top 5 volume spikes
 ")
@@ -140,6 +140,8 @@ What do you want help with?
  .noisy        (state: show data usage points)
  .quiet        (state: hide data usage points)
  .l            list members of loaded set or pair
+ .kt number    keep top number of companies (includes .srt)
+ .kb number    keep bottom number of companies (includes .srt)
 ")
 
 (def b-help-nav

@@ -11,7 +11,11 @@
   (:gen-class))
 
 (defn -main
-  "functions associated with the iexcloud api"
+" a command line interface to extensive uniquely summarized
+ public financial equity data mixed with analytical tools.
+ requires individual API acces to multiple financial data
+ providors including iexcloud.io alpaca.markets and
+ alphavantage.co."
   [& args]
   (println "\n\n")
   (println 
@@ -42,7 +46,10 @@ Welcome to Mug!
 (def ^:dynamic  *fridge*   (atom {}))
 (def ^:dynamic   *from*    (atom (fn [])))
 (def ^:dynamic *bag-buffer* (atom []))
+(def ^:dynamic *subset* (atom []))
 (def ^:dynamic *universe*  (atom []))
+(def ^:dynamic *history* (atom []))
+(def ^:dynamic *prior* (atom ""))
 
 (defn industry?
   "returns fulltext industry name given industry abbreviation"
@@ -87,7 +94,11 @@ Welcome to Mug!
   (declare show-universe)
   (swap! *from* (fn [_] top))
   (if-let [cmd (do (print (str "top" "> ")) (flush) (read-line))]
-    (case (-> cmd (str/split #" ") (first))
+    (do (swap! *history* (fn [x] (conj @*history* cmd)))
+        (case (-> cmd (str/split #" ") (first))
+
+          "\\"  (do '())
+
           ".h"  (do (print hlp/t-help) (top))
 
           ".doc" (do (browse-url "./doc/mug.pdf") (@*from*))
@@ -120,7 +131,7 @@ Welcome to Mug!
           ".eu"     (edit-universe)
           ".su"     (show-universe)
 
-          (catch-all cmd) )))
+          (catch-all cmd) ))))
 
 (defn show-universe [] 
   (do (if (> (count @*universe*) 0)
@@ -140,7 +151,13 @@ Welcome to Mug!
                                                  
            wrapper (fn [x] (str (abbrev x) "\t" x))
           ]
-      (case (-> cmd (str/split #" ") (first))
+      (swap! *history* (fn [x] (conj @*history* cmd)))
+      (case (-> (str @*prior* cmd) (str/split #" ") (first))
+            "\\"  (do (print (peek @*history*)) 
+                        ;(swap! *prior* (fn [x] (peek @*history*)))
+                        ;(swap! *history* (fn [x] (pop x)))
+                  )
+
             ".h"  (do (print hlp/u-help) (edit-universe))
             ".q"  (quitt)
             ".u"  (top)
@@ -191,7 +208,13 @@ Welcome to Mug!
   (declare window)
   ;(swap! *from* (fn [_] (sku t)))
   (if-let [cmd (do (print (str "." @*name* "> ")) (flush) (read-line))]
-    (do (case (-> cmd (str/split #" ") (first))
+    (do (swap! *history* (fn [x] (conj @*history* cmd)))
+        (case (-> (str @*prior* cmd) (str/split #" ") (first))
+              "\\"  (do (print (peek @*history*)) 
+                        ;(swap! *prior* (fn [x] (peek @*history*)))
+                        ;(swap! *history* (fn [x] (pop x)))
+            )
+                        
               ".u"  (do (swap! *name* (fn [_] @*pname*)) (@*from*))
               ".q"  (quitt)
 
@@ -215,14 +238,14 @@ Welcome to Mug!
                             \6 (do (print hlp/s-help-sub-nav) (sku t))
                             (sku t)))
 
-              (if (cname cmd)
-                  (do  (swap! *name* (fn [_] (util/tfmt cmd)))
+              (if (cname (str @*prior* cmd))
+                  (do  (swap! *name* (fn [_] (util/tfmt (str @*prior* cmd))))
                        (sku @*name*))
                   (if (contains? @*fridge* cmd)
-                      (do (swap! *inventory* (fn [_] (get @*fridge* cmd)))
-                          (swap! *name* (fn [_] cmd))
+                      (do (swap! *inventory* (fn [_] (get @*fridge* (str @*prior* cmd))))
+                          (swap! *name* (fn [_] (str @*prior* cmd)))
                           (bag))
-                      (do (println (case cmd
+                      (do (println (case (str @*prior* cmd)
                       ".verbose"  (do (util/verbose))
                       ".concise"  (do (util/concise))
                        ".mov"     (mov t)
@@ -268,7 +291,7 @@ Welcome to Mug!
                        ".cc"      (cc t)
                        ".zc"      (zipcode t)
                        ".refresh" (app/refresh t)
-                       "")) (when (not (= ".q" cmd)) (sku t)) ))) ))))
+                       "")) (when (not (= ".q" (str @*prior* cmd))) (sku t)) ))) ))))
 
 (defn bag []
   (declare quitt)
@@ -278,9 +301,17 @@ Welcome to Mug!
   (declare add-to-bag)
   (declare drop-from-bag)
   (declare sort-table)
+  (declare sort-table-quiet)
+  (declare keep-top)
   (swap! *from* (fn [_] bag))
   (if-let [cmd (do (print (str ":" @*name* "> ")) (flush) (read-line))]
-    (case (-> cmd (str/split #" ") (first))
+    (do (swap! *history* (fn [x] (conj @*history* cmd)))
+        (case (-> (str @*prior* cmd) (str/split #" ") (first))
+
+              "\\"  (do (print (peek @*history*)) 
+                        ;(swap! *prior* (fn [x] (peek @*history*)))
+                        ;(swap! *history* (fn [x] (pop x)))
+                    )
 
           ".p"      (do (println ".p not yet implimented") (@*from*))
 
@@ -305,10 +336,10 @@ Welcome to Mug!
 
           ".doc" (do (browse-url "./doc/mug.pdf") (@*from*))
 
-          ".w"  (window cmd)
-          ".b"  (fill-bag cmd)
-          ".a"  (add-to-bag cmd)
-          ".d"  (drop-from-bag cmd)
+          ".w"  (window (str @*prior* cmd))
+          ".b"  (fill-bag (str @*prior* cmd))
+          ".a"  (add-to-bag (str @*prior* cmd))
+          ".d"  (drop-from-bag (str @*prior* cmd))
 
           ".count" (do (println (count @*inventory*)) (bag))
 
@@ -325,7 +356,7 @@ Welcome to Mug!
           ".s" (let [
                      retry     (fn [] (do (println "usage: '.s <name>") (flush) (bag)))
                      is-ticker (fn [n] (do (println (str n " is a ticker.")) (flush) (bag)))
-                     bb (str/split cmd #" ")
+                     bb (str/split (str @*prior* cmd) #" ")
                     ]
                  (if (= (count bb) 2)
                      (let [name (second bb)] 
@@ -336,7 +367,7 @@ Welcome to Mug!
                                (bag))))
                      (retry)))
 
-          ".map" (let [xs (rest (str/split cmd #" "))
+          ".map" (let [xs (rest (str/split (str @*prior* cmd) #" "))
                         s (if (= (count xs) 1)
                               (str "mug.core/" (first xs))
                               (reduce #(str %1 " " %2)  xs))
@@ -345,7 +376,7 @@ Welcome to Mug!
                      (println (str (first t) "\t" (f (first t)))))
                    (bag))
 
-          ".m" (let [xs (rest (str/split cmd #" "))
+          ".m" (let [xs (rest (str/split (str @*prior* cmd) #" "))
                      fun (fn [x] (eval (read-string (str "mug.core/" x))))
                      eat (fn [x] (let [y (str/split x #"!")] 
                                    (if (= (count y) 2)
@@ -375,7 +406,27 @@ Welcome to Mug!
 
           ".srt" (do (sort-table) (bag))
 
-          (catch-all cmd) )))
+          ".kt" (do (sort-table-quiet) 
+                    (if (or (= [] @*bag-buffer*) (= [nil] @*bag-buffer*))
+                        (println "you first needto use the .m command to create a table")
+                        (if (and (= 2 (count (str/split cmd #" +")))
+                                 (= java.lang.Long (type (read-string (second (str/split cmd #" +"))))))
+                            (keep-top (read-string (second (str/split cmd #" +")))) 
+                            (keep-top 8)))
+                    (bag)
+                )
+
+          ".kb" (do (bag))
+
+          (catch-all (str @*prior* cmd)) ))))
+
+(defn keep-top [num] 
+  (swap! *inventory* (fn [_]
+    (->> (take num (rest @*bag-buffer*))
+         (map (fn [s] (first (str/split s #"\t"))))
+         (map (fn [t] [t (mkt t)])))))
+  ;(bag)
+)
 
 (defn catch-all [cmd]
   (let [cmdlist (str/split cmd #" ")]
@@ -481,6 +532,16 @@ Welcome to Mug!
     (println head)
     (doseq [s (reverse (sort-by f body))]
       (println s))))
+
+(defn sort-table-quiet []
+  (let [subset []
+        [head & body] @*bag-buffer*
+        f (fn [s] (->> (str/split s #"\t") (second) (read-string)))
+       ]
+    (swap! *subset* (fn [_] [head]))
+    (doseq [s (reverse (sort-by f body))]
+      (swap! *subset* (fn [ss] (conj ss s))))
+    (swap! *bag-buffer* (fn [_] @*subset*))))
 
 (defn quitt [] 
   (do (println "Thanks for using Mug.\nGoodbye.")))

@@ -34,6 +34,7 @@
 (def emp   "employees"               (mm (fn [t](when (t? t) (app/employees t)))))
 
 (def zipcode "zipcode"               (mm sec/zipcode))
+(def zc zipcode)
 
 (defn oweb  [t]  (browse-url (web t)))
 (defn yahoo [t]  (browse-url (str "https://finance.yahoo.com/quote/" t "/")))
