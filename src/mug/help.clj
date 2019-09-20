@@ -17,6 +17,7 @@
  .su             show universe
  <ticker> <cmd>  evaluates command (cmd) of name
  .p <t> <t>      create un-named pair (not yet implimented)
+ .dow            create set of dow stocks (not yet implimented)
  \n\n")
 
 (def u-help 
@@ -141,7 +142,7 @@ What do you want help with?
  .quiet        (state: hide data usage points)
  .l            list members of loaded set or pair
  .kt number    keep top number of companies (includes .srt)
- .kb number    keep bottom number of companies (includes .srt)
+ .dt number    drop top number of companies (includes .srt)
 ")
 
 (def b-help-nav

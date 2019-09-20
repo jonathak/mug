@@ -40,6 +40,8 @@
 (defn yahoo [t]  (browse-url (str "https://finance.yahoo.com/quote/" t "/")))
 (defn sec   [t]  (browse-url (str "https://www.sec.gov/cgi-bin/browse-edgar?CIK=" 
                                   t "&owner=exclude&action=getcompany")))
+(defn oweb  [t]  (browse-url (web t)))
+(defn ceoweb [t] (browse-url (str "http://www.google.com/search?q=\"" (ceo t) "\"&btnI")))
 
 (def so    "sharesoutstanding"   (mm (fn [t](when (t? t)
                                        (-> (app/sharesoutstanding+ t)
@@ -125,6 +127,8 @@
 
 (def cff    "cff total"          (mm (fn [t](when (t? t) 
                                        (->> (-> (app/cff t)(str/split #"\n"))
+                                            (filter (fn [x] (or (= (subs x 3 4) "9")
+                                                                (= (subs x 3 4) "8")))) ;recent
                                             (map #(str/split % #" "))
                                             (map (fn [x] (or (second x) "0.0")))
                                             (map read-string)

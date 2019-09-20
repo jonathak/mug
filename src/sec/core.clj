@@ -33,6 +33,8 @@
   (let [^String raw (secpage tick)]
     (if (= raw "_")
         "99999"
-        (-> (re-seq #" \d\d\d\d\d " raw)
+        (-> (re-seq #" \d\d\d\d\d(\s|\-)" raw)
             ((fn [x] (or (first x) "88888")))
-            (str/replace #"\s" "")))))
+            (str/replace #"\s" "")
+            (str/replace #"\-" "")
+            ))))

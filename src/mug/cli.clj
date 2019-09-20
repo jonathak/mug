@@ -7,6 +7,7 @@
             [sec.core       :as sec]
             [clojure.string :as str]
             [clojure.java.browse :refer [browse-url]])
+  (:import [jline.console ConsoleReader])
   (:use [mug.core])
   (:gen-class))
 
@@ -19,8 +20,10 @@
   [& args]
   (declare top)
   (declare quitt)
-  (if (> (.getTime (java.util.Date.)) (+ 1568586302728 2592000000))
-      "contact Dr. Kaufman to renew license."
+  (if (> (.getTime (java.util.Date.)) (+ 1568586302728 3592000000))
+      "
+contact kaufman. something expired.
+"
       (do (println "\n\n")
           (println "
 Welcome to Mug!  
@@ -132,6 +135,8 @@ Welcome to Mug!
 
           ".eu"     (edit-universe)
           ".su"     (show-universe)
+
+          ".dow"    (top)
 
           (catch-all cmd) ))))
 
@@ -273,6 +278,7 @@ Welcome to Mug!
                        ".sec"     (sec t)
                        ".desc"    (desc t)
                        ".ceo"     (ceo t)
+                       ".ceoweb"  (ceoweb t)
                        ".s"       (s t)
                        ".emp"     (emp t)
                        ".so"      (so t)
@@ -323,25 +329,21 @@ Welcome to Mug!
 (defn keep-top 
   "keep-or-drop-top helper"
   [num] 
-  (swap! *inventory* (fn [_]
-    (->> (take num (rest @*bag-buffer*))
-         (map (fn [s] (first (str/split s #"\t"))))
-         (map (fn [t] [t (mkt t)]))
-         #_((fn [tab] 
-            (let [temp []]
-              (doseq [rec tab]
-                (print \.)
-                (conj temp [rec]))
-              temp)))
-))))
+  (swap! *inventory* (fn [inventory]
+    (let [f (fn [t] (->> t (symbol) (get (into {} inventory))))]                 
+      (->> (take num (rest @*bag-buffer*))
+           (map (fn [s] (str/split s #"\t")))
+           (map (fn [[t x]] [(symbol t) (f t)]))
+      )))))
 
 (defn drop-top 
   "keep-or-drop-top helper"
   [num] 
-  (swap! *inventory* (fn [_]
-    (->> (drop num (rest @*bag-buffer*))
-         (map (fn [s] (first (str/split s #"\t"))))
-         (map (fn [t] [t (mkt t)]))))))
+  (swap! *inventory* (fn [inventory]
+    (let [m (fn [t] (->> t (symbol) (get (into {} inventory))))]
+      (->> (drop num (rest @*bag-buffer*))
+           (map (fn [s] (str/split s #"\t")))
+           (map (fn [[t x]] [(symbol t) (m t)])))))))
 
 (defn keep-or-drop-top 
   "used in bag kt and dt: func is keep-top or drop-top"
@@ -500,13 +502,16 @@ Welcome to Mug!
                 (swap! *name* (fn [_] (util/tfmt cmd)))
                 (sku cmd))
             (if (= 2 (count cmdlist))
-                (let [[t c] cmdlist] (do (println (try
-                                                    ((eval (read-string (str "mug.core/" (if (= c "cff") 
-                                                                                             "cffd" 
-                                                                                             c)))) 
-                                                     t)
-                                                    (catch java.lang.RuntimeException e "did you mispell a function?"))) 
-                                         (flush) (@*from*)))
+                (let [[t c] cmdlist] 
+                  (do 
+                    (println 
+                      (try ((eval 
+                              (read-string 
+                                (str "mug.core/" 
+                                  (if (= c "cff") "cffd" c)))) t)
+                           (catch java.lang.RuntimeException e "did you mispell a function?"))) 
+                    (flush) 
+                    (@*from*)))
                 (do (println "too many arguments?") (flush) (@*from*))))
         (if (contains? @*fridge* cmd)
             (do (swap! *inventory* (fn [_] (get @*fridge* cmd)))
