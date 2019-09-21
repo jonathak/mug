@@ -17,7 +17,7 @@
  .su             show universe
  <ticker> <cmd>  evaluates command (cmd) of name
  .p <t> <t>      create un-named pair (not yet implimented)
- .dow            create set of dow stocks (not yet implimented)
+ .dow            create bag of dow stocks
  \n\n")
 
 (def u-help 
@@ -88,8 +88,9 @@ What do you want help with?
  .cff   cash flow financing
  .io    institutional-ownership
  .zc    zipcode (sec web scrape, very slow)
- .mov  top 5 normalized gap moves
- .vs   top 5 volume spikes
+ .mov   top 5 normalized gap moves
+ .vs    top 5 volume spikes
+ .news  company news
 ")
 
 (def s-help-sub-history
@@ -184,6 +185,8 @@ What do you want help with?
  i     industry
  s     sector
  ceo   ceo
+ ceoweb opens top google hit for ceo's name
  cff   aggregate cash flow financing
  zc    zipcode
+ ctg   open clin trials gov
 ")

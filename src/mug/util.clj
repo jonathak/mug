@@ -221,6 +221,9 @@
 (defn insider-transactions! [t]
   (iex-stock-api! t "insider-transactions" "10,000"))
 
+(defn news! [t]
+  (iex-stock-api! t "news" "50"))
+
 (defn ^String refresh
   "puts fresh data into a flat-file fridge, aka memoize, used in iex-stock-api-generator"
   {:updated "20190713"

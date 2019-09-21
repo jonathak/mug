@@ -56,6 +56,15 @@ Welcome to Mug!
 (def ^:dynamic *prior*      (atom ""))
 (def ^:dynamic *index*      (atom 0))
 
+(defn dow "load the dow stocks" []
+  (swap! *inventory* (fn [_] 
+    (->> (-> (slurp "resources/dow.txt")
+             (str/split #"\n"))
+         (map (fn [x] (str/split x #"\t")))
+         (map (fn [[x y]] (symbol y)))
+         (map (fn [x] [x (mkt x)]))
+         (doall)))))
+
 (defn industry?
   "returns fulltext industry name given industry abbreviation"
   [short-form]
@@ -136,7 +145,11 @@ Welcome to Mug!
           ".eu"     (edit-universe)
           ".su"     (show-universe)
 
-          ".dow"    (top)
+          ".dow"    (do (println "this might take a few seconds ... ")
+                        (dow) 
+                        (swap! *name* (fn [_] "dow")) 
+                        (swap! *fridge* (fn [fridge] (assoc fridge "dow" @*inventory*)))
+                        (bag))
 
           (catch-all cmd) ))))
 
@@ -279,6 +292,7 @@ Welcome to Mug!
                        ".desc"    (desc t)
                        ".ceo"     (ceo t)
                        ".ceoweb"  (ceoweb t)
+                       ".news"    (news t)
                        ".s"       (s t)
                        ".emp"     (emp t)
                        ".so"      (so t)

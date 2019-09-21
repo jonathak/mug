@@ -202,6 +202,29 @@
        ]
     s))
 
+(defn news "news"
+  [t]
+  (let [
+          w (fn [x] (-> x (/ 314712e5) (+ 1970) (int) (str)))
+         ff (fn [x] (-> x (str/replace #"(\"|\:|\,)" "")))
+         fx (fn [x] (w (read-string (ff x))))
+         fy ff
+         fz ff
+        clo (->> (-> (util/news! t)
+                     (str/split #"datetime")
+                     (rest)
+                 )
+                 (map (fn [x] (str/split x #"(headline|source|summary)")))
+                 (map (fn [x] (-> x (into []) (pop))))
+                 (map (fn [[x y z]] [(fx x) (fy y) (fz z)]))
+            )
+       ]
+    (->> clo
+         (map (fn [[x y z]] (str x " " y)))
+         (reduce (fn [x y] (str x "\n\n" y)))
+    )))
+
+
 (defn pl "println abbreviation"
   [s]
   (println s))

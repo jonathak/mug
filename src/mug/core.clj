@@ -42,6 +42,7 @@
                                   t "&owner=exclude&action=getcompany")))
 (defn oweb  [t]  (browse-url (web t)))
 (defn ceoweb [t] (browse-url (str "http://www.google.com/search?q=\"" (ceo t) "\"&btnI")))
+(defn ctg "clin trial gov" [t] (browse-url (str "https://clinicaltrials.gov/ct2/results?&lead=" (cname t))))
 
 (def so    "sharesoutstanding"   (mm (fn [t](when (t? t)
                                        (-> (app/sharesoutstanding+ t)
@@ -118,27 +119,29 @@
                                        (-> (app/ebitda+ t)
                                            (simplenum))))))
 
-(def d2e   "dbtoeqty"            (mm (fn [t](when (t? t) (app/dbtoeqty+ t)))))
-(def ir    "insider roster"      (mm (fn [t](when (t? t) (app/ir t)))))
-(def db    "deep book"           (mm (fn [t](when (t? t) (app/db t)))))
-(def sp    "splits"              (mm (fn [t](when (t? t) (app/sp t)))))
-(def fo    "fund ownership"      (mm (fn [t](when (t? t) (app/fo t)))))
-(def cffd   "cff detail"         (mm (fn [t](when (t? t) (app/cff t)))))
+(def d2e   "dbtoeqty"            (mm (fn [t] (when (t? t) (app/dbtoeqty+ t)))))
+(def ir    "insider roster"      (mm (fn [t] (when (t? t) (app/ir t)))))
+(def db    "deep book"           (mm (fn [t] (when (t? t) (app/db t)))))
+(def sp    "splits"              (mm (fn [t] (when (t? t) (app/sp t)))))
+(def fo    "fund ownership"      (mm (fn [t] (when (t? t) (app/fo t)))))
+(def cffd   "cff detail"         (mm (fn [t] (when (t? t) (app/cff t)))))
 
-(def cff    "cff total"          (mm (fn [t](when (t? t) 
-                                       (->> (-> (app/cff t)(str/split #"\n"))
-                                            (filter (fn [x] (or (= (subs x 3 4) "9")
-                                                                (= (subs x 3 4) "8")))) ;recent
-                                            (map #(str/split % #" "))
-                                            (map (fn [x] (or (second x) "0.0")))
-                                            (map read-string)
-                                            (reduce +)
-                                            (int)
-                                      )))))
+(def cff    "cff total"          (mm (fn [t] 
+                                       (if (and (t? t) (> (count (app/cff t)) 10))
+                                           (->> (-> (app/cff t) (str/split #"\n"))
+                                                (filter (fn [x] (or (= (subs x 3 4) "9")
+                                                                    (= (subs x 3 4) "8")))) ;recent
+                                                (map #(str/split % #" "))
+                                                (map (fn [x] (or (second x) "0.0")))
+                                                (map read-string)
+                                                (reduce +)
+                                                (int))
+                                           0)
+                                      )))
 
-(def io    "institutional-ownership" (mm (fn [t](when (t? t) (app/io t)))))
-(def cc    "ceo-compensation"        (mm (fn [t](when (t? t) (app/cc t)))))
-
+(def io    "institutional-ownership" (mm (fn [t] (when (t? t) (app/io t)))))
+(def cc    "ceo-compensation"        (mm (fn [t] (when (t? t) (app/cc t)))))
+(def news  "news"                    (mm (fn [t] (when (t? t) (app/news t)))))
 
 ;functions of t or t,b --------------------------------------------------------------;
 (def prices   "prices,volume->txt [t] [t b]"    app/print-all-prices)
