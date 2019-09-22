@@ -44,17 +44,29 @@ Welcome to Mug!
       ;else
       true))
 
-(def ^:dynamic *inventory*  (atom []))
-(def ^:dynamic   *name*     (atom ""))
-(def ^:dynamic  *pname*     (atom ""))
-(def ^:dynamic  *fridge*    (atom {}))
-(def ^:dynamic   *from*     (atom (fn [])))
-(def ^:dynamic *bag-buffer* (atom []))
-(def ^:dynamic *subset*     (atom []))
-(def ^:dynamic *universe*   (atom []))
-(def ^:dynamic *history*    (atom []))
-(def ^:dynamic *prior*      (atom ""))
-(def ^:dynamic *index*      (atom 0))
+(def ^:dynamic *inventory*   (atom []))
+(def ^:dynamic *name*        (atom ""))
+(def ^:dynamic *pname*       (atom ""))
+(def ^:dynamic *fridge*      (atom {}))
+(def ^:dynamic *from*        (atom (fn [])))
+(def ^:dynamic *bag-buffer*  (atom []))
+(def ^:dynamic *subset*      (atom []))
+(def ^:dynamic *universe*    (atom []))
+(def ^:dynamic *history*     (atom []))
+(def ^:dynamic *prior*       (atom ""))
+(def ^:dynamic *index*       (atom 0))
+(def ^:dynamic *pair*        (atom []))
+
+(defn make-pair "for comparing two companies"
+  [t1 t2]
+  (declare pair)
+  (swap! *pair* (fn [_] [(util/tfmt t1) (util/tfmt t2)]))
+  (pair)
+)
+
+(defn align-pair "combining rates into single text file to compare tickers" []
+  (let [[x y] @*pair*]
+    (do (combine-rates x y))))
 
 (defn dow "load the dow stocks" []
   (swap! *inventory* (fn [_] 
@@ -124,7 +136,9 @@ Welcome to Mug!
           ".a"  (add-to-bag cmd)
           ".d"  (drop-from-bag cmd)
 
-          ".p"  (do (println ".p not yet implimented") (@*from*))
+          ".p"  (let [[a b c] (str/split cmd #" ")]
+                  (make-pair b c) 
+                  (@*from*))
 
           ".sl" (do (println (if (= 2 (count (str/split cmd #" ")))
                         (let [[x y] (str/split cmd #" ")]
@@ -391,7 +405,9 @@ Welcome to Mug!
                         ;(swap! *history* (fn [x] (pop x)))
                     )
 
-          ".p"      (do (println ".p not yet implimented") (@*from*))
+          ".p"      (let [[a b c] (str/split cmd #" ")]
+                      (make-pair b c) 
+                      (@*from*))
 
           ".cmds"   (do (println hlp/cmds)
                         (@*from*))
@@ -459,7 +475,7 @@ Welcome to Mug!
           ".m" (let [xs (rest (str/split (str @*prior* cmd) #" "))
                      function? (fn [s] 
                                  (util/in? 
-                                   ["emp" "so" "pf" "v" "b" "mkt" "c" "d" "r" "g" "e" "d2e" "cc" "mov" "mvs" "vs" "tvs" "web" "i" "s" "ceo" "cff" "zc"] 
+                                   ["emp" "so" "pf" "v" "b" "mkt" "c" "d" "r" "g" "e" "d2e" "cc" "mov" "mvs" "vs" "tvs" "web" "i" "s" "ceo" "cff" "zc" "cname"] 
                                    s))
                      fun (fn [x] (if (function? x)
                                      (eval (read-string (str "mug.core/" x)))
@@ -606,6 +622,21 @@ Welcome to Mug!
                   (bag))
                (retry2)))
         (retry))))
+
+(defn pair []
+  (let [prompt (fn [[x y]] (str ":" x "-" y "> "))]
+    (swap! *from* (fn [_] pair))
+    (if-let [cmd (do (print (prompt @*pair*)) (flush) (read-line))]
+      (let [[a b c] (-> cmd (str/split #" +"))]
+        (case a
+          ".h"      (do (print hlp/p-help) (@*from*))
+          ".u"      (top)
+          ".prices" (do (fprices (first @*pair*)) (fprices (second @*pair*)) (pair)) ;freshprices
+          ".rates"  (do (rates (first @*pair*)) (rates (second @*pair*)) (pair)) ;rates
+          ".align"  (do (align-pair) (pair))
+          ".q"      (quitt)
+          (@*from*)))
+      (@*from*))))
 
 (defn quitt [] 
   (do (swap! *from* (fn [_] (fn [] 0)))

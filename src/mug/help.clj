@@ -1,6 +1,15 @@
 (ns mug.help
   (:gen-class))
 
+(def p-help
+"
+ .h              this help message
+ .q              quit
+ .prices         collect fresh prices both members of the pair
+ .rates          calculate rates for both mebers of the pair
+ .align          combine rates of both members into one text file
+\n\n")
+
 (def t-help
 "
  .h              this help message

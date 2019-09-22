@@ -507,30 +507,54 @@
   (util/doseq-interval alp/putfridge3 (util/biopharmas) 500))
 
 (defn rates [t]
+    (let [
+          n  (str "resources//" (str/upper-case t) "_a_1D?.txt")
+          f  (java.io.File. n)
+         ]
+      (if (.exists f)
+        (let [
+              s  (slurp (str "resources//" (str/upper-case t) "_a_1D?.txt"))
+              l  (rest (str/split s #"\"t\":"))
+              l2 (map #(str/split % #"\"c\":") l)
+              f  (fn [s] (if s (first (str/split s #",")) "0"))
+              fx (fn [s] (- (int (/ (read-string s) 86400.0)) 16590))
+              fy (fn [s] (read-string s))
+              f2 (fn [[x y]] [(fx (f x)) (fy (f y))])
+              l3 (map f2 l2)
+              lp (rest l3)
+              lm (reverse (rest (reverse l3)))
+              l4 (map vector lm lp)
+              l5 (map (fn [[[w x] [y z]]] (str y " " (- z x) "\n")) l4)
+              s2 (reduce (fn [x y] (str x y)) l5)
+             ]
+          (spit (str "resources//" t "_r.p") s2))
+        (do
+          (alp/putfridge3 t)
+          (rates t)))))
+
+(defn combine-rates 
+  [x y]
   (let [
-        n  (str "resources//" (str/upper-case t) "_p.txt")
-        f  (java.io.File. n)
+        nx  (str "resources//" (str/upper-case x) "_r.p")
+        ny  (str "resources//" (str/upper-case y) "_r.p")
+        fx  (java.io.File. nx)
+        fy  (java.io.File. ny)
        ]
-    (if (.exists f)
-      (let [
-            s  (slurp (str "resources//" (str/upper-case t) "_p.txt"))
-            l  (rest (str/split s #"\"t\":"))
-            l2 (map #(str/split % #"\"c\":") l)
-            f  (fn [s] (if s (first (str/split s #",")) "0"))
-            fx (fn [s] (- (int (/ (read-string s) 86400.0)) 16590))
-            fy (fn [s] (read-string s))
-            f2 (fn [[x y]] [(fx (f x)) (fy (f y))])
-            l3 (map f2 l2)
-            lp (rest l3) 
-            lm (reverse (rest (reverse l3)))
-            l4 (map vector lm lp)
-            l5 (map (fn [[[w x] [y z]]] (str y " " (- z x) "\n")) l4)
-            s2 (reduce (fn [x y] (str x y)) l5)
-           ]
-        (spit (str "resources//" t "_r.p") s2))
-      (do
-        (alp/putfridge3 t)
-        (rates t)))))
+    (if (and (.exists fx) (.exists fy))
+        (let [
+               sx  (slurp (str "resources//" (str/upper-case x) "_r.p"))
+               sy  (slurp (str "resources//" (str/upper-case y) "_r.p"))
+               lx  (str/split sx #"\n")
+               ly  (str/split sy #"\n")
+               mx  (map (fn [s] (str/split s #" +")) lx)
+               my  (map (fn [s] (str/split s #" +")) ly)
+               hy  (into {} my)
+               cm  (map (fn [[x y]] [x y (hy x)]) mx)
+               cs  (map (fn [[x y z]] (str x "\t" y "\t" z)) cm)
+                s  (reduce (fn [x y] (str x "\n" y)) cs)
+             ]
+          (spit (str "resources//" x "-" y "_r.p") s))
+        (do (rates x) (rates y) (combine-rates)))))
 
 ;------------------------------------------------------------------------------------;
 

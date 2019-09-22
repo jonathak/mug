@@ -146,6 +146,7 @@
 ;functions of t or t,b --------------------------------------------------------------;
 (def prices   "prices,volume->txt [t] [t b]"    app/print-all-prices)
 (def fprices  "freshprices! [t] [t b]"          app/freshprices!)
+(def rates    "%change"                         app/rates)
 (def ngm      "normalized gap-moves [t] [t b]"  app/normalized-gap-moves)
 (def vp       "alphavantage [t]"                (mm alphav/getp))
 
@@ -174,6 +175,8 @@
       (when (cname ticker)
         (do (spit "resources/zipcode.txt" (str ticker " " (zipcode ticker) "\n") :append true)
             (print ".")))))) 
+
+(def combine-rates app/combine-rates) ;used in mug.cli/pair
 
 
 
