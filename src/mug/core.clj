@@ -1,8 +1,9 @@
 (ns mug.core
-  (:require [mug.app          :as app]
-            [mug.util         :as util]
-            [alphav.core         :as alphav]
-            [sec.core            :as sec]
+  (:require [mug.app             :as app]
+            [mug.util            :as util]
+            [mug.iex             :as iex]
+            [mug.alphav          :as alphav]
+            [mug.sec             :as sec]
             [clojure.string      :as str]
             [clojure.java.browse :refer [browse-url]])
   (:gen-class))
@@ -20,7 +21,7 @@
       (* 1e-6)
       (int)))
 
-(def t? util/valid-ticker?)
+(def t? iex/valid-ticker?)
 (def industries app/industries)
 (def mm memoize)
 
@@ -76,7 +77,7 @@
 (def b     "beta"                (mm (fn [t] (when (t? t)
                                        (-> t (app/beta+ ) (read-string) (* 100.) (int) (/ 100.))))))
 
-(def k-mkt "mktcap from keystats"    (mm (fn [t] (-> (util/get-mktcap t) 
+(def k-mkt "mktcap from keystats"    (mm (fn [t] (-> (iex/get-mktcap t) 
                                                      (simplenum)
                                                      ((fn [x] (if (= x 0) -1 x))) ; so mkt can be divisor
 ))))

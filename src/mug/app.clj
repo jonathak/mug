@@ -3,8 +3,9 @@
   (:require [clj-http.client :as client]
             [clojure.string :as str]
             [mug.util :as util]
-            [alpaca.core :as alp]
-            [alphav.core :as alphav]
+            [mug.iex  :as iex]
+            [mug.alpaca :as alp]
+            [mug.alphav :as alphav]
             [clojure.test :as test]
   )
   (:gen-class))
@@ -45,51 +46,51 @@
        ]
     (set (map #(util/xtract %1 "industry") raw))))
 
-(defn  cname       [t] (util/xtract (util/snatch t) "companyName"))
-(defn  industry    [t] (util/xtract (util/snatch t) "industry"))
-(defn  website     [t] (util/xtract (util/snatch t) "website"))
-(defn  description [t] (util/xtract (util/snatch t) "description"))
-(defn  ceo         [t] (util/xtract (util/snatch t) "CEO"))
-(defn  sector      [t] (util/xtract (util/snatch t) "sector"))
-(defn  employees   [t] (util/xtract (util/snatch t) "employees"))
+(defn  cname       [t] (util/xtract (iex/snatch t) "companyName"))
+(defn  industry    [t] (util/xtract (iex/snatch t) "industry"))
+(defn  website     [t] (util/xtract (iex/snatch t) "website"))
+(defn  description [t] (util/xtract (iex/snatch t) "description"))
+(defn  ceo         [t] (util/xtract (iex/snatch t) "CEO"))
+(defn  sector      [t] (util/xtract (iex/snatch t) "sector"))
+(defn  employees   [t] (util/xtract (iex/snatch t) "employees"))
 
 ;please switch these to keystats+ when keystats+ is repaired
-(defn  sharesoutstanding+ [t] (util/advstat-helper+ t "sharesOutstanding"))
-(defn  publicfloat+       [t] (util/advstat-helper+ t "float"))
-(defn  avg30Volume+       [t] (util/advstat-helper+ t "avg30Volume"))
+(defn  sharesoutstanding+ [t] (iex/advstat-helper+ t "sharesOutstanding"))
+(defn  publicfloat+       [t] (iex/advstat-helper+ t "float"))
+(defn  avg30Volume+       [t] (iex/advstat-helper+ t "avg30Volume"))
 (def  v+ avg30Volume+)
-(defn  day200mvgavg+      [t] (util/advstat-helper+ t "day200MovingAvg"))
-(defn  day50mvgavg+       [t] (util/advstat-helper+ t "day50MovingAvg"))
+(defn  day200mvgavg+      [t] (iex/advstat-helper+ t "day200MovingAvg"))
+(defn  day50mvgavg+       [t] (iex/advstat-helper+ t "day50MovingAvg"))
 ;(defn  nextearn+          [t] (util/advstatfast+  t "nextEarningsDate"))
-(defn  beta+              [t] (util/advstatfast+  t "beta"))
-(defn  marketcap+         [t] (util/advstat-helper+  t "marketcap"))
+(defn  beta+              [t] (iex/advstatfast+  t "beta"))
+(defn  marketcap+         [t] (iex/advstat-helper+  t "marketcap"))
 
 
-(defn  cash+       [t] (util/advstat-helper+ t "totalCash"))
-(defn  debt+       [t] (util/advstat-helper+ t "currentDebt"))
-(defn  revenue+    [t] (util/advstat-helper+ t "revenue"))
-(defn  gross+      [t] (util/advstat-helper+ t "grossProfit"))
-(defn  ebitda+     [t] (util/advstat-helper+ t "EBITDA"))
-(defn  dbtoeqty+   [t] (util/advstatfast+ t "debtToEquity"))
+(defn  cash+       [t] (iex/advstat-helper+ t "totalCash"))
+(defn  debt+       [t] (iex/advstat-helper+ t "currentDebt"))
+(defn  revenue+    [t] (iex/advstat-helper+ t "revenue"))
+(defn  gross+      [t] (iex/advstat-helper+ t "grossProfit"))
+(defn  ebitda+     [t] (iex/advstat-helper+ t "EBITDA"))
+(defn  dbtoeqty+   [t] (iex/advstatfast+ t "debtToEquity"))
 
-(defn  price!      [t] (util/price! t))
+(defn  price!      [t] (iex/price! t))
 
-(defn  cash       [t] (util/advstat-helper t "totalCash"))
-(defn  debt       [t] (util/advstat-helper t "currentDebt"))
-(defn  revenue    [t] (util/advstat-helper t "revenue"))
-(defn  gross      [t] (util/advstat-helper t "grossProfit"))
-(defn  ebitda     [t] (util/advstat-helper t "EBITDA"))
-(defn  dbtoeqty   [t] (util/advstatlocal t "debtToEquity"))
+(defn  cash       [t] (iex/advstat-helper t "totalCash"))
+(defn  debt       [t] (iex/advstat-helper t "currentDebt"))
+(defn  revenue    [t] (iex/advstat-helper t "revenue"))
+(defn  gross      [t] (iex/advstat-helper t "grossProfit"))
+(defn  ebitda     [t] (iex/advstat-helper t "EBITDA"))
+(defn  dbtoeqty   [t] (iex/advstatlocal t "debtToEquity"))
 
 ;------------------------------------------------------------------------------------;
 
 (defn refresh "refreshes ticker in advstats.txt file"
   [t]
-  (util/putfridge2!! t))
+  (iex/putfridge2!! t))
 
 (defn sl "symbol lookup"
   [bait]
-    (if-let [raw (util/symbol-lookup (str/upper-case bait))]
+    (if-let [raw (iex/symbol-lookup (str/upper-case bait))]
       (if-let [data (-> raw
                         (str/replace #", " "_")
                         (str/replace #" " "_")
@@ -106,7 +107,7 @@
 
 (defn cc "ceo-compensation"
   [t]
-    (if-let [raw (util/ceo-compensation+ t)]
+    (if-let [raw (iex/ceo-compensation+ t)]
       (-> raw
         (str/replace #"^[A-Z]+ " "")
         (str/replace #":\"\"" ":\"0\"")
@@ -122,7 +123,7 @@
 (defn ir "insider roster"
   [t]
     (->>
-      (-> (util/insider-roster+ t)
+      (-> (iex/insider-roster+ t)
           (str/replace #"^[A-Z]+ " "")
           (str/replace #" " "_")
           (str/replace #"\"" "")
@@ -134,7 +135,7 @@
 
 (defn db "deep book"
   [t]
-    (-> (util/deepbook t)
+    (-> (iex/deepbook t)
         (str/replace #"\"" "")
         (str/replace #":" " ")
         (str/replace #"," " ")
@@ -143,10 +144,10 @@
 (defn ^String sp "splits"
   {:updated '20190906}
   [t]
-   (if (util/valid-ticker? t)
+   (if (iex/valid-ticker? t)
     (let [booger (fn [[x]] (if x [x] [{'exDate 'none 'ratio 'none}]))]
       (->>
-        (-> (util/splits+ t)
+        (-> (iex/splits+ t)
             (str/replace #"^[A-Za-z]+\s" "")
             (str/replace #"\"" "")
             (str/replace #":" " ")
@@ -164,7 +165,7 @@
 (defn  fo "fund ownership" 
   [t] 
     (let [
-          raw (util/fund-ownership+ t)
+          raw (iex/fund-ownership+ t)
           clo (util/raw-to-clojure raw)
           s   (->> (map #(str (util/year ('report_date %)) " " 
                               (util/dayofyear ('report_date %)) " " 
@@ -177,7 +178,7 @@
 
 (defn  cff "cash flow financing" 
   [t] 
-  (let [hm (-> t (util/cash-flow+) (util/raw-to-clojure))]
+  (let [hm (-> t (iex/cash-flow+) (util/raw-to-clojure))]
     (if (> (count hm) 0)
         (->> (if (= [] ('cashflow hm))
                  [{'reportDate '999 'cashFlowFinancing 9999}]
@@ -192,7 +193,7 @@
   [t]
   (let [
           w (fn [x] (-> x (/ 314712e5) (+ 1970) (int) (str)))
-        clo (-> (util/institutional-ownership+ t)
+        clo (-> (iex/institutional-ownership+ t)
                 (util/raw-to-clojure)
             )
           s (->> (map #(str (w ('reportDate %)) " " ('entityProperName %)) clo)
@@ -210,7 +211,7 @@
          fx (fn [x] (w (read-string (ff x))))
          fy ff
          fz ff
-        clo (->> (-> (util/news! t)
+        clo (->> (-> (iex/news! t)
                      (str/split #"datetime")
                      (rest)
                  )
@@ -224,16 +225,13 @@
          (reduce (fn [x y] (str x "\n\n" y)))
     )))
 
-
 (defn pl "println abbreviation"
   [s]
   (println s))
 
 (def lp pl) ; pl alias
 
-
 (defn av-prices [] true)
-
 
 (defn print-all-prices 
   ;"provides candlestick data with volume to txt file"
@@ -470,33 +468,33 @@
 
 (defn top+ [num]
   "creates fresh html file, table of biotech companies"
-  (util/maketable (first (partition num (util/biomktcapsorted))) funct+ "out"))
+  (iex/maketable (first (partition num (iex/biomktcapsorted))) funct+ "out"))
 
 (defn graballcompanies! []
   "refreshes the entire flatfile database!"
-  (util/doseq-interval util/putfridge! (util/iex-symbols!) 20))
+  (util/doseq-interval iex/putfridge! (iex/iex-symbols!) 20))
 
 (defn all [] ; used in window
-    (util/biomktcapsorted))
+    (iex/biomktcapsorted))
 
 (defn norevenues+ [] 
   (filter (fn [[t m]] (= (revenue+ t) "0")) (all)))
 
 (defn window 
   ([data low high]
-    (util/lowpass (util/highpass data low) high))
+    (iex/lowpass (iex/highpass data low) high))
   ([low high]
     (window (all) low high)))
 
 (defn window-htm [low high]
-  (util/maketable (window low high) funct+ "out"))
+  (iex/maketable (window low high) funct+ "out"))
 
 (defn window0-htm [low high]
-  (util/maketable (window low high) funct0+ "out"))
+  (iex/maketable (window low high) funct0+ "out"))
 
 (defn graballadvstats!! []
   "refreshes entire flatfile database - very very expensive!"
-  (util/doseq-interval util/putfridge2!! (map first (window 25 2500)) 20))
+  (util/doseq-interval iex/putfridge2!! (map first (window 25 2500)) 20))
 
 (defn numticks "NUMber of TICKerS in mktcap range l h"
   [l h]
