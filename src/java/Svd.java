@@ -1,3 +1,5 @@
+/*
+
 import Jama.*;
 
 public class Svd {
@@ -49,17 +51,17 @@ public class Svd {
      SVD.getS().print(3,3);
    }
 
-   /* private print functions */
+//   /* private print functions */
 
    // shorten spelling
-   private static void print(String s) 
-     {System.out.print(s);}
+//   private static void print(String s) 
+//     {System.out.print(s);}
      
    // row vector
-   private static void print(double[] x, int w, int d) {
+//   private static void print(double[] x, int w, int d) {
      // Use format Fw.d for all elements.
-     print("\n");
-     new Matrix(x,1).print(w,d);
-     print("\n");
-   }
-}
+//     print("\n");
+//     new Matrix(x,1).print(w,d);
+//     print("\n");
+//   }
+//}

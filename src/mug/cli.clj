@@ -1,9 +1,11 @@
 (ns mug.cli
-  (:require [mug.core :refer :all ]
-            [mug.cli.state :refer :all ]
+  (:require [mug.core       :refer :all ]
+            [incanter.core  :as i]
+            [incanter.charts  :as c]
+            [mug.cli.state  :refer :all ]
+            [mug.cli.help   :as hlp]
             [mug.app        :as app]
             [mug.util       :as util]
-            [mug.help       :as hlp]
             [mug.iex        :as iex]
             [mug.alphav     :as alphav]
             [mug.sec        :as sec]
@@ -31,7 +33,8 @@
  providors including iexcloud.io alpaca.markets and
  alphavantage.co."
   [& args]
-  (if (> (.getTime (java.util.Date.)) (+ 1568586302728 3592000000))
+;  (if (> (.getTime (java.util.Date.)) (+ 1568586302728 3592000000))
+   (if false
       "
 contact kaufman. something expired.
 "
@@ -48,7 +51,6 @@ Welcome to Mug!
     (do (top-case cmd))))
 
 (defn sku [t]
-  (swap! *from* (fn [_] sku))
   (if-let [cmd (do (print (str "." @*name* "> ")) (flush) (read-line))]
     (do (sku-case cmd t))))
 

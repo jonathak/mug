@@ -354,7 +354,7 @@
         s (try (:body hm) (catch Exception e 2))
        ]
     (when @*showcost* (println "just 1 point"))
-    s)
+    (if s s 0))
 )
 
 (defn freshnup [fridge]
@@ -423,14 +423,14 @@
 (defn highpass 
   "high pass marketcap filter, pass into util/maketable as data"
   [coll cutoff]
-  (let [f (fn [[_ mktcp]] (> mktcp (* 1e6 cutoff)))]
+  (let [f (fn [[_ mktcp]] (> mktcp (* 1e0 cutoff)))]
     (filter f coll)
 ) )
 
 (defn lowpass 
   "high pass marketcap filter, pass into util/maketable as data"
   [coll cutoff]
-  (let [f (fn [[_ mktcp]] (< mktcp (* 1e6 cutoff)))]
+  (let [f (fn [[_ mktcp]] (< mktcp (* 1e0 cutoff)))]
     (filter f coll)
 ) )
 

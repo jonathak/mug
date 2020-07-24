@@ -1,41 +1,42 @@
 (ns mug.app
-  (:import Crap Fart Jama.Matrix Jama.SingularValueDecomposition)
+;  (:import Crap Fart Jama.Matrix Jama.SingularValueDecomposition)
   (:require [clj-http.client :as client]
             [clojure.string :as str]
             [mug.util :as util]
             [mug.iex  :as iex]
             [mug.alpaca :as alp]
             [mug.alphav :as alphav]
+            [mug.bioworld :as bioworld]
             [clojure.test :as test]
   )
   (:gen-class))
 
 ;------------------------------------------------------------------------------------;
 
-(defn d-array [vec] 
-  "convert clojure vector to java array of type double"
-  (into-array vec))
+;(defn d-array [vec] 
+;  "convert clojure vector to java array of type double"
+;  (into-array vec))
 
-(defn d-vec [arr]
-  "convert java array of doubles into clojure vector"
-  (let [
-        n   (alength arr)
-        vec (range n)
-       ]
-    (into []
-      (for [i (range n)] 
-        (aget arr i)))))
+;(defn d-vec [arr]
+;  "convert java array of doubles into clojure vector"
+;  (let [
+;        n   (alength arr)
+;        vec (range n)
+;       ]
+;    (into []
+;      (for [i (range n)] 
+;        (aget arr i)))))
 
-(defn javacrap  [] (Crap/fart " ..from iexcloud.core/javacrap.. "))
-(defn javacrap2 [] (Crap/matic (into-array [1. 2. 3. 4. 5. 6. 7. 8. 9.])))
-(defn javacrap3 [] (d-vec (Crap/hole (d-array [1. 2. 3.]))))
-(defn javacrap4 [] (d-vec (Svd/hole (d-array [1. 2. 3.]))))
-(defn javacrap5 [] (d-vec (Svd/uuu (d-array [1. 2. -5. -2. 1. 3. 3. 1. -1.]) 3)))
+;(defn javacrap  [] (Crap/fart " ..from iexcloud.core/javacrap.. "))
+;(defn javacrap2 [] (Crap/matic (into-array [1. 2. 3. 4. 5. 6. 7. 8. 9.])))
+;(defn javacrap3 [] (d-vec (Crap/hole (d-array [1. 2. 3.]))))
+;(defn javacrap4 [] (d-vec (Svd/hole (d-array [1. 2. 3.]))))
+;(defn javacrap5 [] (d-vec (Svd/uuu (d-array [1. 2. -5. -2. 1. 3. 3. 1. -1.]) 3)))
 
-(def m      [[1. 2. -5.][-2. 1. 3.][3. 1. -1.]] )
-(def m-ser  {:columnwise (d-array (flatten m)) :by (Long. (count (first m)))} )
-(def uu     (d-vec (Svd/uuu (:columnwise m-ser) (:by m-ser))))
-(def u      (->> uu (partition (:by m-ser)) (map vec) (vec)))
+;(def m      [[1. 2. -5.][-2. 1. 3.][3. 1. -1.]] )
+;(def m-ser  {:columnwise (d-array (flatten m)) :by (Long. (count (first m)))} )
+;(def uu     (d-vec (Svd/uuu (:columnwise m-ser) (:by m-ser))))
+;(def u      (->> uu (partition (:by m-ser)) (map vec) (vec)))
 
 ;------------------------------------------------------------------------------------;
 
@@ -276,7 +277,7 @@
 
 
 (defn normalized-gap-moves 
-  ;"normalized-gap-moves (open2/close1 or -close1/open2)"
+  "normalized-gap-moves (open2/close1 or -close1/open2)"
     ([t b]
       (let [
             nn  (str "resources//" (str/upper-case t) "_a_" b ".txt")
@@ -289,7 +290,7 @@
                 fp            (fn [s] (-> (read-string s) (* 1000) (util/datetime) (str/replace #"(\s|:)" "_")))
                 fp2           (fn [s] (-> (read-string s) (- 1546289100) (/ (or (hm b) 86400)) (+ 0.5) (int)))
                 f3            (fn [s] (str (fp2 (f s)) " " (fp (f s)) " " s))
-                fo            (fn [[_ _ _ o _ _ _ _]] o)
+                fo            (fn [[_ _ _ o _ _ c _]] (if (= o "0") c o)) ;occasional o = 0 was causing errors
                 fc            (fn [[_ _ _ _ _ _ c _]] c)
 
                 mrs           ;modified read-string
@@ -383,7 +384,8 @@
         gulp (slurp (str "resources//" (str/upper-case t) "_g_" b ".p")) ;string
         fl   (fn [s] (-> s (str/split #" "))) ;string to list
         fngm (fn [s] (->> (fl s) (last) (read-string) ((fn [x] (if (< x 0) (- 0 x) x))))) ;string to ngm float (java.lang Comparable)
-        recent? (fn [s] (or (= s "2019") (= s "2018")))
+        ;recent? (fn [s] (or (= s "2019") (= s "2018")))
+        recent? (fn [s] (= s "2019"))
         year? (fn [s] (-> s (str/split #" ") (second) (reverse) ((fn [[a b c d & e]] (str d c b a))) ))
        ]
     (->> (str/split gulp #"\n")
@@ -401,7 +403,8 @@
                            (* 100.0)
                            (int)
                        )
-                       " %"))))
+                       ""))))
+         ((fn [xs] (if (= (subs (sp t) 0 4) "2019") (rest xs) xs))) ;don't want split date
          (reduce #(str % "\n" %2))
     )
   )
@@ -424,6 +427,58 @@
     )
   )
 )
+
+(defn max-movements
+  "largest movement"
+  [t]
+  (let [
+        fabs (fn [x] (if (< x 0.0) (- 0 x) (+ 0 x)))
+       ]
+    (->> (str/split (movements t) #"\n")
+         (map (fn [s] (str/split s #"\t")))
+         (map second)
+         (map read-string)
+         (map fabs)
+         (apply max)
+         ;(int)
+    )
+  )
+)
+
+(defn max-move-date
+  "date of largest movement"
+  [t]
+  (let [
+        fabs (fn [x] (if (< x 0.0) (- 0 x) (+ 0 x)))
+       ]
+    (->> (str/split (movements t) #"\n")
+         (map (fn [s] (str/split s #"\t")))
+         ;(map (fn [x] (fabs (read-string (second x)))))
+         (first)
+         (first)
+    )
+  )
+)
+
+(defn bioworld 
+  "docstring"
+  [t]
+  (let [nn  (str "resources//" (str/lower-case t) "_bw.txt")
+        ff  (java.io.File. nn)]
+    (if (.exists ff)
+        (slurp nn)
+        (let [fish (->> t
+                     (max-move-date)
+                     (bioworld/getp)
+                     ((fn [x] (str/split x #"<p>")))
+                     (filter (fn [x] (.contains x (-> t
+                                                    (cname)
+                                                    (str/split #" ")
+                                                    (first)))))
+                     (reduce str))]
+          (spit nn fish)
+          fish))))
+
 
 ;------------------------------------------------------------------------------------;
 
@@ -553,6 +608,22 @@
              ]
           (spit (str "resources//" x "-" y "_r.p") s))
         (do (rates x) (rates y) (combine-rates)))))
+
+
+(defn ups [t]
+    (let [
+          n  (str "resources//" (str/upper-case t) "_r.p")
+          f  (java.io.File. n)
+         ]
+      (if (.exists f)
+        (let [
+              s  (slurp (str "resources//" (str/upper-case t) "_r.p"))
+              l  (str/split s #"\n")
+             ]
+          (spit (str "resources//" t "_ups.p") "0"))
+        (do
+          (alp/putfridge3 t)
+          (rates t)))))
 
 ;------------------------------------------------------------------------------------;
 

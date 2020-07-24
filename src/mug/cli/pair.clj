@@ -1,10 +1,12 @@
 (in-ns 'mug.cli)
 
+(declare pair)
 (defn make-pair "for comparing two companies"
   [t1 t2]
-  (declare pair)
-  (swap! *pair* (fn [_] [(util/tfmt t1) (util/tfmt t2)]))
-  (do (combine-rates t1 t2))
+  (if (and (cname t1) (cname t2)) ;ensure valid tickers
+      (do (swap! *pair* (fn [_] [(util/tfmt t1) (util/tfmt t2)]))
+          (combine-rates t1 t2))
+      (println "did you mispell a ticker?"))
   (pair)
 )
 
@@ -16,7 +18,7 @@
           ".u"      (top)
           ".prices" (do (fprices (first @*pair*)) (fprices (second @*pair*)) (pair)) ;freshprices
           ".rates"  (do (rates (first @*pair*)) (rates (second @*pair*)) (pair)) ;rates
-          ".align"  (do (combine-rates (first @*pair*) (second @*pair*) (pair)))
+          ".align"  (do (combine-rates (first @*pair*) (second @*pair*)) (pair))
           ".q"      (quitt)
           ".s" (let [
                      retry     (fn [] (do (println "usage: '.s <name>") (flush) (@*from*)))

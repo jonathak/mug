@@ -55,7 +55,7 @@
 
             ".h"  (do (print hlp/u-help) (universe))
             ".q"  (quitt)
-            ".u"  (@*from*)
+            ".u"  (top)
             ".li" (do (-> (slurp "resources/industry-abbreviations.txt")
                           (println))
                       (@*from*))

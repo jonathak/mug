@@ -130,8 +130,9 @@
 (def cff    "cff total"          (mm (fn [t] 
                                        (if (and (t? t) (> (count (app/cff t)) 10))
                                            (->> (-> (app/cff t) (str/split #"\n"))
-                                                (filter (fn [x] (or (= (subs x 3 4) "9")
-                                                                    (= (subs x 3 4) "8")))) ;recent
+                                                (filter (fn [x] (or (= (subs x 3 4) "9") ;recent
+                                                                    ;(= (subs x 3 4) "8")
+                                                                )))
                                                 (map #(str/split % #" "))
                                                 (map (fn [x] (or (second x) "0.0")))
                                                 (map read-string)
@@ -153,8 +154,18 @@
 
 (def mov      "top 5 ngm instances [t]"         app/movements)
 
-(def mvs      "scalar version of mov"           (fn [t] 
-                                                  (app/tot-abs-movements t)))
+(def mvs      "scalar version of mov"           (fn [t] (app/tot-abs-movements t)))
+(def mvx      "max mov"                         (fn [t] (app/max-movements t)))
+(def mvd      "date of max move"                (fn [t] (app/max-move-date t)))
+(def bw       "bioworld snippet"                (mm (fn [t] (let [raw  (app/bioworld t)
+                                                                  snip  (fn [s x] 
+                                                                          (subs s x 
+                                                                            (+ x (min 500 
+                                                                                   (- (count s) x)))))]
+                                                              (reduce str 
+                                                                (map (fn [x] (snip raw x)) 
+                                                                  (util/s-locations raw 
+                                                                    (first (str/split (cname t) #" ")))))))))
 
 (def vs       "volume spikes"                   app/volume-spikes)
 (def tvs      "top volume spike"                app/top-volume-spike)
@@ -178,6 +189,3 @@
             (print ".")))))) 
 
 (def combine-rates app/combine-rates) ;used in mug.cli/pair
-
-
-

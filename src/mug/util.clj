@@ -46,6 +46,17 @@
   [coll elm]  
   (some #(= elm %) coll))
 
+(defn s-locations
+  "provides the locations of a substring (bait) within a string (water)"
+  [water bait]
+    (let [*bucket* (atom [])]
+      (loop [x 0]
+        (let [nibble (str/index-of (str/lower-case water) (str/lower-case bait) x)]
+          (if nibble
+            (do (swap! *bucket* (fn [b] (conj b nibble)))
+                (recur (+ 1 nibble)))
+            @*bucket*)))))
+
 ;--------------------------------------------------------;
 
 (defn from-epoch

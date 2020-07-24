@@ -200,7 +200,7 @@
           ".m" (let [xs (rest (str/split (str cmd) #" "))
                      function? (fn [s] 
                                  (util/in? 
-                                   ["emp" "so" "pf" "v" "b" "mkt" "c" "d" "r" "g" "e" "d2e" "cc" "mov" "mvs" "vs" "tvs" "web" "i" "s" "ceo" "cff" "zc" "cname"] 
+                                   ["emp" "so" "pf" "v" "b" "mkt" "c" "d" "r" "g" "e" "d2e" "cc" "mov" "mvs" "mvx" "mvd" "bw" "vs" "tvs" "web" "i" "s" "ceo" "cff" "zc" "cname" "p"] 
                                    s))
                      fun (fn [x] (if (function? x)
                                      (eval (read-string (str "mug.core/" x)))

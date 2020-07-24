@@ -1,5 +1,14 @@
 (in-ns 'mug.cli)
 
+(defn dow "load the dow stocks" []
+  (swap! *inventory* (fn [_] 
+    (->> (-> (slurp "resources/dow.txt")
+             (str/split #"\n"))
+         (map (fn [x] (str/split x #"\t")))
+         (map (fn [[x y]] (symbol y)))
+         (map (fn [x] [x (mkt x)]))
+         (doall)))))
+
 (defn top-case [cmd]
    (case (-> cmd (str/split #" ") (first))
 
@@ -38,9 +47,9 @@
           ".su"     (show-universe)
 
           ".dow"    (do (println "this might take a few seconds ... ")
-                        ;(dow) 
-                        ;(swap! *name* (fn [_] "dow")) 
-                        ;(swap! *fridge* (fn [fridge] (assoc fridge "dow" @*inventory*)))
+                        (dow) 
+                        (swap! *name* (fn [_] "dow")) 
+                        (swap! *fridge* (fn [fridge] (assoc fridge "dow" @*inventory*)))
                         (bag))
 
           (catch-all cmd)))

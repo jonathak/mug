@@ -7,6 +7,8 @@
                  [org.clojure/clojure "1.8.0"]
                  [clj-http "3.10.0"]
                  [jline "2.11"]
+                 [incanter/incanter-core "1.9.3"]
+                 [incanter/incanter-charts "1.9.3"]
                 ]
   :java-source-paths ["src/java" "src/java/Jama"]
   :main mug.cli
